@@ -24,7 +24,8 @@ class MaterialFolderController extends Controller
      */
     public function create()
     {
-        $folders = MaterialFolder::whereNull('parent_id')->get();
+        // Show all folders as potential parents for multi-level nesting
+        $folders = MaterialFolder::orderBy('name')->get();
         return view('backend.material.folder.create', compact('folders'));
     }
 
@@ -63,11 +64,15 @@ class MaterialFolderController extends Controller
     public function edit(string $id)
     {
         $material = MaterialFolder::where('id', $id)->first();
-        $folders = MaterialFolder::whereNull('parent_id')->get();
 
         if (!isset($material)) {
-            return back()->withToastSuccess('Material folder not found');
+            return back()->withToastError('Material folder not found');
         }
+
+        // Show all folders except current one (to prevent circular reference)
+        $folders = MaterialFolder::where('id', '!=', $id)
+            ->orderBy('name')
+            ->get();
 
         return view('backend.material.folder.create', compact('material', 'folders'));
     }
@@ -81,7 +86,7 @@ class MaterialFolderController extends Controller
         $material = MaterialFolder::where('id', $id)->first();
 
         if (!isset($material)) {
-            return back()->withToastSuccess('Material folder not found');
+            return back()->withToastError('Material folder not found');
         }
 
         MaterialFolder::where('id', $id)->update([
@@ -91,7 +96,7 @@ class MaterialFolderController extends Controller
             'parent_id' => $request->input('parent_id', null), // Handle parent_id if provided
         ]);
 
-        return redirect()->route('material.folder.index')->withToastSuccess('Material folder deleted successfully');
+        return redirect()->route('material.folder.index')->withToastSuccess('Material folder updated successfully');
     }
 
     /**

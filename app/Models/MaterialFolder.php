@@ -13,6 +13,7 @@ class MaterialFolder extends Model
         'type',
         'name',
         'status',
+        'parent_id',
     ];
 
     public function materials()
