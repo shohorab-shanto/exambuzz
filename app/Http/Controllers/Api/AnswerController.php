@@ -143,7 +143,7 @@ class AnswerController extends Controller
             $find_exam = Exam::where('id', $request->exam_id)->select('id', 'pass_marks', 'expired_at')->first();
 
             if (!PreliminaryAnswer::where('user_id', Auth::id())->where('exam_id', $request->exam_id)->exists()) {
-                return $this->errorMessage('Somthing went wrong', '');
+                return $this->errorMessage('You have not participated in this exam yet.', '');
             }
 
             $answer = PreliminaryAnswer::where('user_id', Auth::id())
@@ -174,12 +174,17 @@ class AnswerController extends Controller
             $data['subjects'] = Subject::whereIn('id', explode(',', $answer->exam->subject_id))->get();
             $data['sources'] = TopicSource::whereIn('id', explode(',', $answer->exam->topic_id))->get();
 
+            // Calculate subject and topic based breakdown
+            $subjectBreakdown = $this->calculateSubjectTopicBreakdown($answer);
+            $data['subject_breakdown'] = $subjectBreakdown['subject_breakdown'];
+            $data['topic_breakdown'] = $subjectBreakdown['topic_breakdown'];
+
             $data['answer'] = $answer;
 
         } elseif ($request->written_id) {
 
             if (!WrittenAnswer::where('user_id', Auth::id())->where('written_id', $request->written_id)->exists()) {
-                return $this->errorMessage('Somthing went wrong', '');
+                return $this->errorMessage('You have not participated in this exam yet.', '');
             }
 
             $answer = WrittenAnswer::where('user_id', Auth::id())
@@ -569,6 +574,106 @@ class AnswerController extends Controller
             ->orderBy('obtained_mark', 'desc')->limit(3)->get();
 
         return $this->successMessage('ok', $data);
+    }
+
+    /**
+     * Calculate subject and topic based breakdown of answers
+     */
+    private function calculateSubjectTopicBreakdown($answer)
+    {
+        // Parse user's answer
+        $root_answer = str_replace("A", 0, $answer->answer);
+        $root_answer = str_replace("B", 1, $root_answer);
+        $root_answer = str_replace("C", 2, $root_answer);
+        $root_answer = json_decode(str_replace("D", 3, $root_answer));
+
+        // Get all questions with their subjects and topics
+        $questions = ExamQuestion::where('exam_id', $answer->exam_id)
+            ->with(['questionOptions', 'subject', 'topic'])
+            ->get();
+
+        $subjectStats = [];
+        $topicStats = [];
+
+        foreach ($questions as $key => $question) {
+            $subject_id = $question->subject_id;
+            $topic_id = $question->topic_id;
+            
+            // Initialize subject stats if not exists
+            if (!isset($subjectStats[$subject_id])) {
+                $subjectStats[$subject_id] = [
+                    'subject_id' => $subject_id,
+                    'subject_name' => $question->subject ? $question->subject->name : 'Unknown',
+                    'total_questions' => 0,
+                    'correct' => 0,
+                    'wrong' => 0,
+                    'skipped' => 0,
+                ];
+            }
+
+            // Initialize topic stats if not exists
+            if ($topic_id && !isset($topicStats[$topic_id])) {
+                $topicStats[$topic_id] = [
+                    'topic_id' => $topic_id,
+                    'topic_name' => $question->topic ? $question->topic->topic : 'Unknown',
+                    'subject_id' => $subject_id,
+                    'subject_name' => $question->subject ? $question->subject->name : 'Unknown',
+                    'total_questions' => 0,
+                    'correct' => 0,
+                    'wrong' => 0,
+                    'skipped' => 0,
+                ];
+            }
+
+            $subjectStats[$subject_id]['total_questions']++;
+            if ($topic_id) {
+                $topicStats[$topic_id]['total_questions']++;
+            }
+
+            // Check if answer is correct, wrong, or skipped
+            $userAnswer = isset($root_answer->$key) ? $root_answer->$key : '';
+            
+            if ($question->questionOptions->count() > 0) {
+                $correctAnswerIndex = null;
+                foreach ($question->questionOptions as $option_key => $option) {
+                    if ($option->is_answer == 1) {
+                        $correctAnswerIndex = $option_key;
+                        break;
+                    }
+                }
+
+                if ($userAnswer === '') {
+                    // Skipped
+                    $subjectStats[$subject_id]['skipped']++;
+                    if ($topic_id) {
+                        $topicStats[$topic_id]['skipped']++;
+                    }
+                } elseif ($correctAnswerIndex !== null && $userAnswer == $correctAnswerIndex) {
+                    // Correct
+                    $subjectStats[$subject_id]['correct']++;
+                    if ($topic_id) {
+                        $topicStats[$topic_id]['correct']++;
+                    }
+                } else {
+                    // Wrong
+                    $subjectStats[$subject_id]['wrong']++;
+                    if ($topic_id) {
+                        $topicStats[$topic_id]['wrong']++;
+                    }
+                }
+            } else {
+                // No options, consider as skipped
+                $subjectStats[$subject_id]['skipped']++;
+                if ($topic_id) {
+                    $topicStats[$topic_id]['skipped']++;
+                }
+            }
+        }
+
+        return [
+            'subject_breakdown' => array_values($subjectStats),
+            'topic_breakdown' => array_values($topicStats),
+        ];
     }
 
 }

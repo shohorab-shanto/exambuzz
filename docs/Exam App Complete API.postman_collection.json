@@ -1,0 +1,1888 @@
+{
+	"info": {
+		"_postman_id": "complete-api-collection-2025",
+		"name": "Exam App - Complete API Collection 2025",
+		"description": "Complete API collection with subject and topic support for questions",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api/",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Test User",
+									"type": "text"
+								},
+								{
+									"key": "phone",
+									"value": "01700000000",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "test@example.com",
+									"type": "text",
+									"description": "Optional"
+								},
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}auth/register",
+							"host": ["{{base_url}}auth"],
+							"path": ["register"]
+						},
+						"description": "Register a new user account"
+					}
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email_or_phone",
+									"value": "test@example.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "12345678",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}auth/login",
+							"host": ["{{base_url}}auth"],
+							"path": ["login"]
+						},
+						"description": "Login with email/phone and password. Returns auth token."
+					}
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "phone",
+									"value": "01700000000",
+									"type": "text"
+								},
+								{
+									"key": "otp",
+									"value": "123456",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}auth/verify-otp",
+							"host": ["{{base_url}}auth"],
+							"path": ["verify-otp"]
+						}
+					}
+				},
+				{
+					"name": "Resend OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "phone",
+									"value": "01700000000",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}auth/resend-otp",
+							"host": ["{{base_url}}auth"],
+							"path": ["resend-otp"]
+						}
+					}
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email_or_phone",
+									"value": "test@example.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}auth/store-forgot-password",
+							"host": ["{{base_url}}auth"],
+							"path": ["store-forgot-password"]
+						}
+					}
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email_or_phone",
+									"value": "test@example.com",
+									"type": "text"
+								},
+								{
+									"key": "otp",
+									"value": "123456",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "newpassword",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}auth/reset-password",
+							"host": ["{{base_url}}auth"],
+							"path": ["reset-password"]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}logout",
+							"host": ["{{base_url}}logout"]
+						},
+						"description": "Logout and delete auth tokens"
+					}
+				}
+			]
+		},
+		{
+			"name": "Exam Management",
+			"item": [
+				{
+					"name": "Check Live Exam",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subcategory",
+									"value": "Preliminary",
+									"type": "text"
+								},
+								{
+									"key": "childcategory",
+									"value": "",
+									"type": "text",
+									"description": "Optional"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}exam/check-live-exam",
+							"host": ["{{base_url}}exam"],
+							"path": ["check-live-exam"]
+						},
+						"description": "Check if there's a live exam. Returns exam with questions including subject and topic info."
+					}
+				},
+				{
+					"name": "Get Routine (Upcoming Exams)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subcategory",
+									"value": "Preliminary",
+									"type": "text"
+								},
+								{
+									"key": "childcategory",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}exam/routine",
+							"host": ["{{base_url}}exam"],
+							"path": ["routine"]
+						}
+					}
+				},
+				{
+					"name": "Get All Routine",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subcategory",
+									"value": "Preliminary",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}exam/all-routine",
+							"host": ["{{base_url}}exam"],
+							"path": ["all-routine"]
+						}
+					}
+				},
+				{
+					"name": "Get Archive Exams",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subcategory",
+									"value": "Preliminary",
+									"type": "text"
+								},
+								{
+									"key": "childcategory",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "subject_id",
+									"value": "",
+									"type": "text",
+									"description": "Optional - filter by subject"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"type": "text",
+									"description": "Optional - search exam name"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}exam/archive",
+							"host": ["{{base_url}}exam"],
+							"path": ["archive"]
+						}
+					}
+				},
+				{
+					"name": "Archive Exam Question Details",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "exam_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subcategory",
+									"value": "Preliminary",
+									"type": "text"
+								},
+								{
+									"key": "childcategory",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}exam/archive-exam-question-details",
+							"host": ["{{base_url}}exam"],
+							"path": ["archive-exam-question-details"]
+						},
+						"description": "Get archived exam details with questions. Questions now include subject and topic information."
+					}
+				},
+				{
+					"name": "Get Syllabus",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subcategory",
+									"value": "Preliminary",
+									"type": "text"
+								},
+								{
+									"key": "childcategory",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}exam/syllabus",
+							"host": ["{{base_url}}exam"],
+							"path": ["syllabus"]
+						}
+					}
+				},
+				{
+					"name": "Get Subject List",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}exam/subject-list",
+							"host": ["{{base_url}}exam"],
+							"path": ["subject-list"]
+						},
+						"description": "Get all subjects with their topics"
+					}
+				},
+				{
+					"name": "Get Present Live Exam",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}get-present-live-exam",
+							"host": ["{{base_url}}get-present-live-exam"]
+						}
+					}
+				},
+				{
+					"name": "Toggle Favorite Question",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "question_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "subject_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subcategory",
+									"value": "Preliminary",
+									"type": "text"
+								},
+								{
+									"key": "childcategory",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}exam/toggle-favorite",
+							"host": ["{{base_url}}exam"],
+							"path": ["toggle-favorite"]
+						}
+					}
+				},
+				{
+					"name": "Get Favorite List",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subcategory",
+									"value": "Preliminary",
+									"type": "text"
+								},
+								{
+									"key": "childcategory",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "subject_id",
+									"value": "",
+									"type": "text",
+									"description": "Optional"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"type": "text",
+									"description": "Optional"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}exam/favorite-list",
+							"host": ["{{base_url}}exam"],
+							"path": ["favorite-list"]
+						},
+						"description": "Get user's favorite questions with subject and topic info"
+					}
+				},
+				{
+					"name": "Get Result List",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subcategory",
+									"value": "Preliminary",
+									"type": "text"
+								},
+								{
+									"key": "childcategory",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "subject_id",
+									"value": "",
+									"type": "text",
+									"description": "Optional"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"type": "text",
+									"description": "Optional"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}exam/result-list",
+							"host": ["{{base_url}}exam"],
+							"path": ["result-list"]
+						}
+					}
+				},
+				{
+					"name": "Get Merit List",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subcategory",
+									"value": "Preliminary",
+									"type": "text"
+								},
+								{
+									"key": "childcategory",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}exam/merit-list",
+							"host": ["{{base_url}}exam"],
+							"path": ["merit-list"]
+						}
+					}
+				},
+				{
+					"name": "Get Merit List V2",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subcategory",
+									"value": "Preliminary",
+									"type": "text"
+								},
+								{
+									"key": "childcategory",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}exam/v2/merit-list",
+							"host": ["{{base_url}}exam"],
+							"path": ["v2", "merit-list"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Answer Management",
+			"item": [
+				{
+					"name": "Store Preliminary Answer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "exam_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "type",
+									"value": "Live",
+									"type": "text",
+									"description": "Live or OMR"
+								},
+								{
+									"key": "answer",
+									"value": "[\"A\",\"B\",\"C\",\"D\",\"A\"]",
+									"type": "text",
+									"description": "JSON array of answers"
+								},
+								{
+									"key": "total_question",
+									"value": "100",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}answer/store-preliminary-answer",
+							"host": ["{{base_url}}answer"],
+							"path": ["store-preliminary-answer"]
+						},
+						"description": "Submit MCQ exam answers. System calculates marks automatically."
+					}
+				},
+				{
+					"name": "Show Preliminary Answer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "exam_id",
+									"value": "1",
+									"type": "text",
+									"description": "For MCQ exams"
+								},
+								{
+									"key": "written_id",
+									"value": "",
+									"type": "text",
+									"description": "For written exams",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}answer/show-preliminary-answer",
+							"host": ["{{base_url}}answer"],
+							"path": ["show-preliminary-answer"]
+						},
+						"description": "Get exam answer summary with statistics:\n- positive_count: Total correct answers\n- negative_count: Total wrong answers\n- empty_count: Total unanswered\n- obtained_marks: Final score\n- result_status: Pass/Fail\n- User's position in merit list\n- subject_breakdown: Performance breakdown by subject (correct/wrong/skipped per subject)\n- topic_breakdown: Performance breakdown by topic (correct/wrong/skipped per topic)"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "exam_id",
+											"value": "1",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}answer/show-preliminary-answer",
+									"host": ["{{base_url}}answer"],
+									"path": ["show-preliminary-answer"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"ok\",\n    \"data\": {\n        \"question_count\": 100,\n        \"total_examinee\": 150,\n        \"total_passed_examinee\": 80,\n        \"my_position\": 25,\n        \"subjects\": [\n            {\n                \"id\": 1,\n                \"name\": \"Bangla\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"English\"\n            }\n        ],\n        \"sources\": [\n            {\n                \"id\": 1,\n                \"topic\": \"Grammar\",\n                \"source\": \"BCS 2020\"\n            }\n        ],\n        \"subject_breakdown\": [\n            {\n                \"subject_id\": 1,\n                \"subject_name\": \"Bangla\",\n                \"total_questions\": 35,\n                \"correct\": 28,\n                \"wrong\": 5,\n                \"skipped\": 2\n            },\n            {\n                \"subject_id\": 2,\n                \"subject_name\": \"English\",\n                \"total_questions\": 35,\n                \"correct\": 25,\n                \"wrong\": 8,\n                \"skipped\": 2\n            },\n            {\n                \"subject_id\": 3,\n                \"subject_name\": \"Math\",\n                \"total_questions\": 30,\n                \"correct\": 20,\n                \"wrong\": 7,\n                \"skipped\": 3\n            }\n        ],\n        \"topic_breakdown\": [\n            {\n                \"topic_id\": 1,\n                \"topic_name\": \"Grammar\",\n                \"subject_id\": 1,\n                \"subject_name\": \"Bangla\",\n                \"total_questions\": 15,\n                \"correct\": 12,\n                \"wrong\": 2,\n                \"skipped\": 1\n            },\n            {\n                \"topic_id\": 2,\n                \"topic_name\": \"Literature\",\n                \"subject_id\": 1,\n                \"subject_name\": \"Bangla\",\n                \"total_questions\": 20,\n                \"correct\": 16,\n                \"wrong\": 3,\n                \"skipped\": 1\n            },\n            {\n                \"topic_id\": 5,\n                \"topic_name\": \"Vocabulary\",\n                \"subject_id\": 2,\n                \"subject_name\": \"English\",\n                \"total_questions\": 18,\n                \"correct\": 14,\n                \"wrong\": 3,\n                \"skipped\": 1\n            }\n        ],\n        \"answer\": {\n            \"id\": 1,\n            \"user_id\": 1909,\n            \"exam_id\": 1,\n            \"type\": \"Live\",\n            \"answer\": \"[A,B,C,D,A,B,C,D,...]\",\n            \"positive_count\": 73,\n            \"negative_count\": 20,\n            \"empty_count\": 7,\n            \"positive_marks\": 73.00,\n            \"negative_marks\": 5.00,\n            \"empty_marks\": 0.00,\n            \"obtained_marks\": 68.00,\n            \"result_status\": 1,\n            \"created_at\": \"2025-10-16T10:30:00.000000Z\",\n            \"updated_at\": \"2025-10-16T10:30:00.000000Z\",\n            \"user\": {\n                \"id\": 1909,\n                \"name\": \"John Doe\",\n                \"phone\": \"01700000000\"\n            },\n            \"exam\": {\n                \"id\": 1,\n                \"name\": \"BCS Preliminary Mock Test\",\n                \"pass_marks\": 40\n            }\n        }\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Preliminary Answer Script",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "exam_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "total_question",
+									"value": "100",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}answer/preliminary-answer-script",
+							"host": ["{{base_url}}answer"],
+							"path": ["preliminary-answer-script"]
+						},
+						"description": "Get detailed answer script with question-by-question breakdown. Questions now include subject and topic information."
+					}
+				},
+				{
+					"name": "Preliminary Answer Merit List",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "exam_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"type": "text",
+									"description": "Optional"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}answer/preliminary-answer-merit-list",
+							"host": ["{{base_url}}answer"],
+							"path": ["preliminary-answer-merit-list"]
+						}
+					}
+				},
+				{
+					"name": "Preliminary Answer Merit List V2",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "exam_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"type": "text",
+									"description": "Optional"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}answer/v2/preliminary-answer-merit-list",
+							"host": ["{{base_url}}answer"],
+							"path": ["v2", "preliminary-answer-merit-list"]
+						}
+					}
+				},
+				{
+					"name": "Store Written Answer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "written_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "question_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"value": "",
+									"type": "file",
+									"description": "Upload answer image"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}answer/store-written-answer",
+							"host": ["{{base_url}}answer"],
+							"path": ["store-written-answer"]
+						}
+					}
+				},
+				{
+					"name": "Store Written Answer V2",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "written_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "question_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"value": "",
+									"type": "file"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}answer/v2/store-written-answer",
+							"host": ["{{base_url}}answer"],
+							"path": ["v2", "store-written-answer"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "User Profile",
+			"item": [
+				{
+					"name": "Get User Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}profile/user",
+							"host": ["{{base_url}}profile"],
+							"path": ["user"]
+						}
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Updated Name",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "updated@example.com",
+									"type": "text"
+								},
+								{
+									"key": "phone",
+									"value": "01700000000",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"value": "",
+									"type": "file",
+									"description": "Optional"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}profile/update",
+							"host": ["{{base_url}}profile"],
+							"path": ["update"]
+						}
+					}
+				},
+				{
+					"name": "Ask Query",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "query",
+									"value": "Your question here",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}profile/asking-query",
+							"host": ["{{base_url}}profile"],
+							"path": ["asking-query"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Packages & Subscription",
+			"item": [
+				{
+					"name": "Get Packages",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}packages",
+							"host": ["{{base_url}}packages"]
+						}
+					}
+				},
+				{
+					"name": "Purchase Package",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "package_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "user_id",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}purchase-package",
+							"host": ["{{base_url}}purchase-package"]
+						}
+					}
+				},
+				{
+					"name": "Get Package History",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}package-history",
+							"host": ["{{base_url}}package-history"]
+						}
+					}
+				},
+				{
+					"name": "Get Package History V2",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}v2/package-history",
+							"host": ["{{base_url}}v2"],
+							"path": ["package-history"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Revision Module",
+			"item": [
+				{
+					"name": "Get Revision Subject List",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}revision-subject-list",
+							"host": ["{{base_url}}revision-subject-list"]
+						}
+					}
+				},
+				{
+					"name": "Get Revision Topic List",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}revision-topic-list/1",
+							"host": ["{{base_url}}revision-topic-list"],
+							"path": ["1"]
+						}
+					}
+				},
+				{
+					"name": "Get Revision Question List",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}revision-question-list/1",
+							"host": ["{{base_url}}revision-question-list"],
+							"path": ["1"]
+						}
+					}
+				},
+				{
+					"name": "Get Revision Question List by Subject",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}revision-question-subject-list/1",
+							"host": ["{{base_url}}revision-question-subject-list"],
+							"path": ["1"]
+						}
+					}
+				},
+				{
+					"name": "Toggle Revision Question Favorite",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "question_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "is_favorite",
+									"value": "1",
+									"type": "text",
+									"description": "1 or 0"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}revision-question-favorite",
+							"host": ["{{base_url}}revision-question-favorite"]
+						}
+					}
+				},
+				{
+					"name": "Mark Revision Question as Read",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "question_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "is_read",
+									"value": "1",
+									"type": "text",
+									"description": "1 or 0"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}revision-question-read",
+							"host": ["{{base_url}}revision-question-read"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Material & Study Resources",
+			"item": [
+				{
+					"name": "Get Materials",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subject_id",
+									"value": "",
+									"type": "text",
+									"description": "Optional"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"type": "text",
+									"description": "Optional"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}get-material",
+							"host": ["{{base_url}}get-material"]
+						}
+					}
+				},
+				{
+					"name": "Get Materials V2",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category",
+									"value": "BCS",
+									"type": "text"
+								},
+								{
+									"key": "subject_id",
+									"value": "",
+									"type": "text",
+									"description": "Optional"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"type": "text",
+									"description": "Optional"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}v2/get-material",
+							"host": ["{{base_url}}v2"],
+							"path": ["get-material"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Get Notifications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}notification",
+							"host": ["{{base_url}}notification"]
+						}
+					}
+				},
+				{
+					"name": "Mark Notification as Seen",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}make-notification-seen",
+							"host": ["{{base_url}}make-notification-seen"]
+						}
+					}
+				},
+				{
+					"name": "Store FCM Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "fcm_token",
+									"value": "your_fcm_token_here",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}store-fcm-token",
+							"host": ["{{base_url}}store-fcm-token"]
+						}
+					}
+				},
+				{
+					"name": "Get Notice Board",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}get-notice-board",
+							"host": ["{{base_url}}get-notice-board"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Teacher Panel",
+			"item": [
+				{
+					"name": "Get Exam and Papers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}teacher/exam-and-paper",
+							"host": ["{{base_url}}teacher"],
+							"path": ["exam-and-paper"]
+						}
+					}
+				},
+				{
+					"name": "Store Exam Paper Assessment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "written_answer_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "question_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "marks",
+									"value": "10",
+									"type": "text"
+								},
+								{
+									"key": "comment",
+									"value": "Good answer",
+									"type": "text",
+									"description": "Optional"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}teacher/store-exam-paper-assessment",
+							"host": ["{{base_url}}teacher"],
+							"path": ["store-exam-paper-assessment"]
+						}
+					}
+				},
+				{
+					"name": "Get Teacher Wallet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}teacher/wallet",
+							"host": ["{{base_url}}teacher"],
+							"path": ["wallet"]
+						}
+					}
+				},
+				{
+					"name": "Withdrawal Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "amount",
+									"value": "1000",
+									"type": "text"
+								},
+								{
+									"key": "payment_method",
+									"value": "bkash",
+									"type": "text"
+								},
+								{
+									"key": "account_number",
+									"value": "01700000000",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}teacher/withdrawal-request",
+							"host": ["{{base_url}}teacher"],
+							"path": ["withdrawal-request"]
+						}
+					}
+				},
+				{
+					"name": "Get Teacher Dashboard",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}teacher/dashboard",
+							"host": ["{{base_url}}teacher"],
+							"path": ["dashboard"]
+						}
+					}
+				},
+				{
+					"name": "Get Top 3 Students (Written)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}v2/get-top-3-student/1",
+							"host": ["{{base_url}}v2"],
+							"path": ["get-top-3-student", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Miscellaneous",
+			"item": [
+				{
+					"name": "Get Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}category",
+							"host": ["{{base_url}}category"]
+						},
+						"description": "Get all exam categories and subcategories"
+					}
+				},
+				{
+					"name": "Privacy Policy",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}privacy-policy",
+							"host": ["{{base_url}}privacy-policy"]
+						}
+					}
+				},
+				{
+					"name": "Contact Us",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}contact-us",
+							"host": ["{{base_url}}contact-us"]
+						}
+					}
+				},
+				{
+					"name": "Account Deletion",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}account-deletation/1",
+							"host": ["{{base_url}}account-deletation"],
+							"path": ["1"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
+
