@@ -145,6 +145,40 @@
                                                             <input type="hidden" name="question_id[]"
                                                                    value="{{ $question->id }}">
 
+                                                            <div class="col-md-12 mb-3">
+                                                                <label for="">Subject <span class="text-danger">*</span></label>
+                                                                <select class="form-control" name="subject_question_id_{{ $question->id }}" 
+                                                                        id="subject_edit_{{ $question->id }}" 
+                                                                        onchange="loadTopicsForEditQuestion(this, {{ $question->id }})" required>
+                                                                    <option value="">Select Subject</option>
+                                                                    @foreach($subjects as $subj)
+                                                                        <option value="{{ $subj->id }}" 
+                                                                            {{ $question->subject_id == $subj->id ? 'selected' : '' }}>
+                                                                            {{ $subj->name }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="col-md-12 mb-3">
+                                                                <label for="">Topic</label>
+                                                                <select class="form-control" name="topic_question_id_{{ $question->id }}" 
+                                                                        id="topic_edit_{{ $question->id }}">
+                                                                    <option value="">Select Topic (Optional)</option>
+                                                                    @if($question->subject_id)
+                                                                        @php
+                                                                            $questionTopics = \App\Models\TopicSource::where('subject_id', $question->subject_id)->get();
+                                                                        @endphp
+                                                                        @foreach($questionTopics as $qt)
+                                                                            <option value="{{ $qt->id }}" 
+                                                                                {{ $question->topic_id == $qt->id ? 'selected' : '' }}>
+                                                                                {{ $qt->topic }} ({{ $qt->source }})
+                                                                            </option>
+                                                                        @endforeach
+                                                                    @endif
+                                                                </select>
+                                                            </div>
+
                                                             <div class="col-md-12">
                                                                 <label for="">Question Name</label>
                                                                 <textarea class="summernote11"
@@ -248,6 +282,31 @@
 
         var count = {{ $present_question->total() }};
 
+        // Pre-load subjects data for use in JavaScript
+        var examSubjects = [
+            @foreach($subjects as $subj)
+            {
+                id: {{ $subj->id }},
+                name: "{{ $subj->name }}"
+            },
+            @endforeach
+        ];
+
+        // Pre-load exam's topics (the topics assigned to this exam)
+        var examTopics = [
+            @foreach($topic as $t)
+            {
+                id: {{ $t->id }},
+                topic: "{{ $t->topic }}",
+                source: "{{ $t->source }}",
+                subject_id: {{ $t->subject_id }}
+            },
+            @endforeach
+        ];
+
+        // Current selected subject from URL
+        var currentSubjectId = {{ request()->__s ?? 'null' }};
+
         function addAnotherQuestion(e, subject_id) {
 
             var max_input_at_a_time = 5;
@@ -268,10 +327,21 @@
                 count +
                 '</span> </h4> <div class="d-flex justify-content-end"> <i class="fas fa-minus-circle fa-lg" style="padding-top: 8px;display: none;cursor: pointer;" onclick="closeQuestion(this)" title="Collapse"></i> <i class="fas fa-plus-circle fa-lg" style="padding-top: 8px;cursor: pointer;" onclick="openQuestion(this)" title="Expand"></i> <i class="fas fa-times-circle fa-lg ms-2 text-danger" style="padding-top: 8px;cursor: pointer;" onclick="removeQuestion(this)" title="Remove"></i> </div> </div> </div> <div class="card-body collaps-question bg-warning" style="display: none;"> ';
 
-            // Add Subject and Topic Dropdowns
-            // data +=
-            //     '<div class="col-md-12 mb-3"> <label for="subject">Subject</label> <select class="form-control" name="subject_question_id" id="subject_' + serial_number + '" onchange="loadTopics(this, ' + serial_number + ')"> <option value="">Select Subject</option> <!-- Options will be dynamically added here --> </select> </div> ' +
-            //     '<div class="col-md-12 mb-3"> <label for="topic">Topic</label> <select class="form-control" name="topic_question_id" id="topic_' + serial_number + '"> <option value="">Select Topic</option> </select> </div>';
+            // Add hidden serial_number input
+            data += '<input type="hidden" name="serial_number[]" value="' + serial_number + '">';
+
+            // Add Subject Dropdown
+            data += '<div class="col-md-12 mb-3"> <label for="subject">Subject <span class="text-danger">*</span></label> <select class="form-control subject-dropdown" name="subject_question_id[]" id="subject_' + serial_number + '" onchange="loadTopicsForQuestion(this, ' + serial_number + ')" required> <option value="">Select Subject</option>';
+            
+            // Add subject options from examSubjects array (no default selection)
+            for (var s = 0; s < examSubjects.length; s++) {
+                data += '<option value="' + examSubjects[s].id + '">' + examSubjects[s].name + '</option>';
+            }
+            
+            data += '</select> </div>';
+
+            // Add Topic Dropdown
+            data += '<div class="col-md-12 mb-3"> <label for="topic">Topic</label> <select class="form-control topic-dropdown" name="topic_question_id[]" id="topic_' + serial_number + '"> <option value="">Select Topic (Optional)</option> </select> </div>';
 
             data +=
                 '<div class="col-md-12"> <label for="">Question Name</label> <textarea class="question_name summernote11" placeholder="Enter question name here" name="question_name[]" rows="5" style="width: 100%;"></textarea> </div> ' +
@@ -300,8 +370,6 @@
             $('.question').prop('disabled', true);
             $("#question-submit-button-" + subject_id).removeAttr('disabled');
 
-            $(e).data('serial_number', ++serial_number);
-
             // Initialize Summernote editors
             $('.summernote11').summernote({
                 height: 100,
@@ -314,43 +382,68 @@
                 ],
             });
 
-            // Dynamically load subjects
-            loadSubjects();
+            $(e).data('serial_number', ++serial_number);
         }
 
-        // Function to dynamically load subjects
-        function loadSubjects() {
-            $.ajax({
-                url: '/subject/getSubjects', // Your API endpoint to fetch subjects
-                method: 'GET',
-                success: function (data) {
-                    $('select[name="subject_id"]').each(function () {
-                        var subjectSelect = $(this);
-                        subjectSelect.empty();
-                        subjectSelect.append('<option value="">Select Subject</option>');
-                        data.subjects.forEach(function (subject) {
-                            subjectSelect.append('<option value="' + subject.id + '">' + subject.name + '</option>');
-                        });
-                    });
-                }
-            });
-        }
-
-        // Function to dynamically load topics based on selected subject
-        function loadTopics(element, serial_number) {
+        // Function to dynamically load topics based on selected subject (for new questions)
+        // Shows ALL topics that belong to the selected subject
+        function loadTopicsForQuestion(element, serial_number) {
             var subject_id = $(element).val();
+            var topicSelect = $('#topic_' + serial_number);
+
+            // Clear existing options
+            topicSelect.empty();
+            topicSelect.append('<option value="">Select Topic (Optional)</option>');
 
             if (subject_id) {
+                // Fetch all topics for the selected subject via AJAX
                 $.ajax({
-                    url: '/getTopics/' + subject_id, // Your API endpoint to fetch topics by subject
-                    method: 'GET',
+                    url: '{{ route("exam.getTopic") }}',
+                    method: 'POST',
+                    data: {
+                        subjects: [subject_id],
+                        _token: '{{ csrf_token() }}'
+                    },
                     success: function (data) {
-                        var topicSelect = $('#topic_' + serial_number);
-                        topicSelect.empty();
-                        topicSelect.append('<option value="">Select Topic</option>');
-                        data.topics.forEach(function (topic) {
-                            topicSelect.append('<option value="' + topic.id + '">' + topic.name + '</option>');
+                        var topics = JSON.parse(data);
+                        topics.forEach(function (topic) {
+                            topicSelect.append('<option value="' + topic.id + '">' + topic.topic + ' (' + topic.source + ')</option>');
                         });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading topics:', error);
+                    }
+                });
+            }
+        }
+
+        // Function to dynamically load topics for existing questions
+        // Shows ALL topics that belong to the selected subject
+        function loadTopicsForEditQuestion(element, question_id) {
+            var subject_id = $(element).val();
+            var topicSelect = $('#topic_edit_' + question_id);
+
+            // Clear existing options
+            topicSelect.empty();
+            topicSelect.append('<option value="">Select Topic (Optional)</option>');
+
+            if (subject_id) {
+                // Fetch all topics for the selected subject via AJAX
+                $.ajax({
+                    url: '{{ route("exam.getTopic") }}',
+                    method: 'POST',
+                    data: {
+                        subjects: [subject_id],
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function (data) {
+                        var topics = JSON.parse(data);
+                        topics.forEach(function (topic) {
+                            topicSelect.append('<option value="' + topic.id + '">' + topic.topic + ' (' + topic.source + ')</option>');
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading topics:', error);
                     }
                 });
             }

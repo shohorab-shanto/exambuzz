@@ -12,4 +12,12 @@ class ExamQuestion extends Model {
     public function questionOptions() {
         return $this->hasMany(ExamQuestionOption::class);
     }
+
+    public function subject() {
+        return $this->belongsTo(Subject::class);
+    }
+
+    public function topic() {
+        return $this->belongsTo(TopicSource::class, 'topic_id');
+    }
 }

@@ -50,7 +50,7 @@ class AnswerController extends Controller
             $root_answer = str_replace("C", 2, $root_answer);
             $root_answer = json_decode(str_replace("D", 3, $root_answer));
 
-            $questions = ExamQuestion::where('exam_id', $request->exam_id)->limit($total_question)->with('questionOptions')->get();
+            $questions = ExamQuestion::where('exam_id', $request->exam_id)->limit($total_question)->with('questionOptions', 'subject', 'topic')->get();
 
             foreach ($questions as $key => $item) {
 
@@ -237,7 +237,7 @@ class AnswerController extends Controller
         $root_answer = (str_replace("C", 2, $root_answer));
         $root_answer = json_decode(str_replace("D", 3, $root_answer));
 
-        $questions = ExamQuestion::where('exam_id', $request->exam_id)->limit($total_question)->with('questionOptions')->get();
+        $questions = ExamQuestion::where('exam_id', $request->exam_id)->limit($total_question)->with('questionOptions', 'subject', 'topic')->get();
 
         foreach ($questions as $key => $item) {
 

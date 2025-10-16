@@ -208,7 +208,7 @@ class ExamController extends Controller
             ->with([
                 'exams' => function ($q) use ($exam) {
                     return $q->where('exam_id', $exam->id)
-                        ->select(['id', 'exam_id', 'subject_id', 'question_name', 'question_explanation'])
+                        ->select(['id', 'exam_id', 'subject_id', 'topic_id', 'question_name', 'question_explanation'])
                         ->with([
                             'questionOptions' => function ($option) {
                                 return $option->select(['id', 'exam_question_id', 'option', 'is_answer']);
@@ -234,6 +234,19 @@ class ExamController extends Controller
 
         try {
             $subject_id = $request->subject_id;
+            
+            // Validate new questions have subject selected
+            if (isset($request->serial_number) && count($request->serial_number) > 0) {
+                if (!$request->has('subject_question_id')) {
+                    return back()->withToastError('Please select a subject for each question');
+                }
+                
+                foreach ($request->subject_question_id as $key => $subj_id) {
+                    if (empty($subj_id)) {
+                        return back()->withToastError('Subject is required for all questions');
+                    }
+                }
+            }
 
             if (isset($request->question_id) && count($request->question_id) > 0) {
 
@@ -241,6 +254,15 @@ class ExamController extends Controller
                     $update_question = ExamQuestion::find($question_id);
                     $update_question->question_name = $request->input('question_name_' . $question_id);
                     $update_question->question_explanation = $request->input('question_explanation_' . $question_id);
+                    
+                    // Update subject and topic if provided
+                    if ($request->has('subject_question_id_' . $question_id)) {
+                        $update_question->subject_id = $request->input('subject_question_id_' . $question_id);
+                    }
+                    if ($request->has('topic_question_id_' . $question_id)) {
+                        $update_question->topic_id = $request->input('topic_question_id_' . $question_id);
+                    }
+                    
                     $update_question->save();
 
                     $update_option = $request->input('question_option_name_' . $question_id);
@@ -276,12 +298,17 @@ class ExamController extends Controller
             if (isset($request->serial_number) && count($request->serial_number) > 0) {
 
                 foreach ($request->serial_number as $key => $serial_number) {
-                    $postfix = $request->input('question_option_name_' . $subject_id . $serial_number);
+                    // Get subject and topic for this specific question
+                    $question_subject_id = isset($request->subject_question_id[$key]) ? $request->subject_question_id[$key] : $subject_id;
+                    $question_topic_id = isset($request->topic_question_id[$key]) ? $request->topic_question_id[$key] : null;
+                    
+                    $postfix = $request->input('question_option_name_' . $question_subject_id . $serial_number);
 
-                    if ($request->question_name[$key] != null && $postfix != null) {
+                    if ($request->question_name[$key] != null && $postfix != null && $question_subject_id) {
                         $question = ExamQuestion::create([
                             'exam_id' => $request->exam_id,
-                            'subject_id' => $subject_id,
+                            'subject_id' => $question_subject_id,
+                            'topic_id' => $question_topic_id,
                             'question_name' => $request->question_name[$key],
                             'question_explanation' => $request->question_explanation[$key],
                         ]);
@@ -290,7 +317,7 @@ class ExamController extends Controller
 
                             foreach ($postfix as $o_key => $option) {
 
-                                if ($request->input('question_option_' . $subject_id . $serial_number) == $o_key) {
+                                if ($request->input('question_option_' . $question_subject_id . $serial_number) == $o_key) {
                                     $answer = 1;
                                 } else {
                                     $answer = 0;

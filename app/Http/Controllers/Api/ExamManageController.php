@@ -43,6 +43,8 @@ class ExamManageController extends Controller
 
             $exam = $exam->with([
                 'questions.questionOptions',
+                'questions.subject',
+                'questions.topic',
                 'userAnswer' => function ($q) {
                     return $q->where('user_id', Auth::id());
                 },
@@ -360,7 +362,7 @@ class ExamManageController extends Controller
 
         if ($sub === 'Preliminary') {
             $exam = Exam::where('status', 1)->where('id', $request->exam_id)
-                ->with('questions.questionOptions')
+                ->with('questions.questionOptions', 'questions.subject', 'questions.topic')
                 ->first();
             $subjects = Subject::whereIn('id', explode(',', $exam->subject_id))->get();
             $sources = TopicSource::whereIn('id', explode(',', $exam->topic_id))->get();
@@ -437,7 +439,7 @@ class ExamManageController extends Controller
                 });
             }
 
-            $favorite = $favorite->with('preliQuestion.questionOptions')
+            $favorite = $favorite->with('preliQuestion.questionOptions', 'preliQuestion.subject', 'preliQuestion.topic')
                 ->latest()
                 ->paginate();
         } else {
