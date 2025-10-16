@@ -31,4 +31,9 @@ class WrittenAnswer extends Model
     {
         return $this->belongsTo(User::class, 'teacher_id', 'id');
     }
+
+    public function review()
+    {
+        return $this->hasOne(WrittenAnswerReview::class, 'written_answer_id');
+    }
 }

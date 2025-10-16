@@ -266,6 +266,12 @@ Route::middleware('auth:sanctum')->controller(AnswerController::class)->prefix('
 
     Route::post('/store-written-answer', 'storeWrittenAnswer');
     Route::post('/v2/store-written-answer', 'storeWrittenAnswerv2');
+
+    // Review system routes (Conversation Thread Style)
+    Route::post('/submit-review', 'submitReview'); // Student submits rating + comment
+    Route::post('/add-conversation', 'addConversationMessage'); // Add message to conversation (student/teacher/admin)
+    Route::post('/get-conversation', 'getReviewConversation'); // Get full conversation thread
+    Route::post('/reply-review', 'replyToReview'); // Legacy - redirects to add-conversation
 });
 
 Route::middleware('auth:sanctum')->controller(TeacherPanelController::class)->prefix('/teacher')->group(function () {

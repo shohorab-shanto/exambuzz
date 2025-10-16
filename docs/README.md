@@ -83,14 +83,16 @@ This directory contains comprehensive Postman collections for the Exam App APIs.
 - Get Merit List
 - Get Merit List V2
 
-### 3. Answer Management (7 endpoints)
+### 3. Answer Management (9 endpoints)
 - Store Preliminary Answer
-- Show Preliminary Answer ⭐ (with statistics)
+- Show Preliminary Answer ⭐ (with statistics + review)
 - Preliminary Answer Script ⭐ (with subject/topic)
 - Preliminary Answer Merit List
 - Preliminary Answer Merit List V2
 - Store Written Answer
 - Store Written Answer V2
+- Submit Review (Student) ⭐ NEW
+- Reply to Review (Teacher) ⭐ NEW
 
 ### 4. User Profile (3 endpoints)
 - Get User Profile
@@ -246,13 +248,13 @@ This directory contains comprehensive Postman collections for the Exam App APIs.
 
 ## API Endpoints Summary
 
-**Total Endpoints:** 65+
+**Total Endpoints:** 67+
 
 | Category | Endpoints | Auth Required |
 |----------|-----------|---------------|
 | Authentication | 7 | No (except Logout) |
 | Exam Management | 15 | Yes |
-| Answer Management | 7 | Yes |
+| Answer Management | 9 | Yes |
 | User Profile | 3 | Yes |
 | Packages | 4 | Mixed |
 | Revision | 6 | Yes |

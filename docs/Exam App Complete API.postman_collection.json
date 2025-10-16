@@ -1107,6 +1107,302 @@
 							"path": ["v2", "store-written-answer"]
 						}
 					}
+				},
+				{
+					"name": "Submit Review (Student)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "written_answer_id",
+									"value": "123",
+									"type": "text",
+									"description": "ID of the evaluated answer sheet"
+								},
+								{
+									"key": "rating",
+									"value": "5",
+									"type": "text",
+									"description": "Rating 1-5 stars"
+								},
+								{
+									"key": "comment",
+									"value": "Excellent evaluation! Very detailed feedback and helpful comments.",
+									"type": "text",
+									"description": "Review comment (max 1000 characters)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}answer/submit-review",
+							"host": ["{{base_url}}answer"],
+							"path": ["submit-review"]
+						},
+						"description": "Students can rate teacher's evaluation (1-5 stars) and write a review comment. Similar to Google Play Store reviews. Can update existing reviews."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "written_answer_id",
+											"value": "123",
+											"type": "text"
+										},
+										{
+											"key": "rating",
+											"value": "5",
+											"type": "text"
+										},
+										{
+											"key": "comment",
+											"value": "Excellent evaluation!",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}answer/submit-review",
+									"host": ["{{base_url}}answer"],
+									"path": ["submit-review"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"Review submitted successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"written_answer_id\": 123,\n        \"user_id\": 1909,\n        \"teacher_id\": 5,\n        \"rating\": 5,\n        \"comment\": \"Excellent evaluation! Very detailed feedback and helpful comments.\",\n        \"teacher_reply\": null,\n        \"replied_at\": null,\n        \"created_at\": \"2025-10-16T17:50:00.000000Z\",\n        \"updated_at\": \"2025-10-16T17:50:00.000000Z\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Add Conversation Message",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "review_id",
+									"value": "1",
+									"type": "text",
+									"description": "ID of the review to add message to"
+								},
+								{
+									"key": "message",
+									"value": "Thank you! I have a follow-up question about question #5...",
+									"type": "text",
+									"description": "Conversation message (max 2000 characters)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}answer/add-conversation",
+							"host": ["{{base_url}}answer"],
+							"path": ["add-conversation"]
+						},
+						"description": "Add message to review conversation thread. Works for students, teachers, and admins. System auto-detects user type. Creates ongoing conversation thread."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "review_id",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "message",
+											"value": "Thank you!",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}answer/add-conversation",
+									"host": ["{{base_url}}answer"],
+									"path": ["add-conversation"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"Message posted successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"review_id\": 1,\n        \"user_id\": 1909,\n        \"user_type\": \"student\",\n        \"message\": \"Thank you for your feedback! I have a follow-up question...\",\n        \"created_at\": \"2025-10-16T18:30:00.000000Z\",\n        \"updated_at\": \"2025-10-16T18:30:00.000000Z\",\n        \"user\": {\n            \"id\": 1909,\n            \"name\": \"John Doe\",\n            \"phone\": \"01700000000\"\n        }\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Review Conversation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "review_id",
+									"value": "1",
+									"type": "text",
+									"description": "ID of the review"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}answer/get-conversation",
+							"host": ["{{base_url}}answer"],
+							"path": ["get-conversation"]
+						},
+						"description": "Get full conversation thread for a review including all messages from student, teacher, and admin."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "review_id",
+											"value": "1",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}answer/get-conversation",
+									"host": ["{{base_url}}answer"],
+									"path": ["get-conversation"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"Conversation retrieved successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"rating\": 5,\n        \"comment\": \"Excellent evaluation!\",\n        \"user\": {\n            \"id\": 1909,\n            \"name\": \"John Doe\"\n        },\n        \"teacher\": {\n            \"id\": 5,\n            \"name\": \"Mr. Rahman\"\n        },\n        \"conversations\": [\n            {\n                \"id\": 1,\n                \"user_type\": \"teacher\",\n                \"message\": \"Thank you for your feedback!\",\n                \"created_at\": \"2025-10-16T18:00:00Z\",\n                \"user\": {\"name\": \"Mr. Rahman\"}\n            },\n            {\n                \"id\": 2,\n                \"user_type\": \"student\",\n                \"message\": \"I have a question...\",\n                \"created_at\": \"2025-10-16T18:30:00Z\",\n                \"user\": {\"name\": \"John Doe\"}\n            },\n            {\n                \"id\": 3,\n                \"user_type\": \"teacher\",\n                \"message\": \"Great question! Here's why...\",\n                \"created_at\": \"2025-10-16T19:00:00Z\",\n                \"user\": {\"name\": \"Mr. Rahman\"}\n            }\n        ]\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Reply to Review (Legacy)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "review_id",
+									"value": "1",
+									"type": "text",
+									"description": "ID of the review to reply to"
+								},
+								{
+									"key": "reply",
+									"value": "Thank you for your feedback! I'm glad you found my evaluation helpful. Keep up the good work!",
+									"type": "text",
+									"description": "Reply message (max 1000 characters)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}answer/reply-review",
+							"host": ["{{base_url}}answer"],
+							"path": ["reply-review"]
+						},
+						"description": "LEGACY ENDPOINT: Now redirects to 'add-conversation'. Use 'Add Conversation Message' endpoint instead for better functionality. This endpoint is kept for backward compatibility only."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "review_id",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "reply",
+											"value": "Thank you for your feedback!",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}answer/reply-review",
+									"host": ["{{base_url}}answer"],
+									"path": ["reply-review"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"Reply posted successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"written_answer_id\": 123,\n        \"user_id\": 1909,\n        \"teacher_id\": 5,\n        \"rating\": 5,\n        \"comment\": \"Excellent evaluation! Very detailed feedback and helpful comments.\",\n        \"teacher_reply\": \"Thank you for your feedback! I'm glad you found my evaluation helpful. Keep up the good work!\",\n        \"replied_at\": \"2025-10-16T18:00:00.000000Z\",\n        \"created_at\": \"2025-10-16T17:50:00.000000Z\",\n        \"updated_at\": \"2025-10-16T18:00:00.000000Z\",\n        \"user\": {\n            \"id\": 1909,\n            \"name\": \"John Doe\",\n            \"phone\": \"01700000000\"\n        },\n        \"teacher\": {\n            \"id\": 5,\n            \"name\": \"Mr. Rahman\",\n            \"phone\": \"01800000000\"\n        }\n    }\n}"
+						}
+					]
 				}
 			]
 		},

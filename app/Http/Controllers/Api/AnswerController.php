@@ -195,6 +195,9 @@ class AnswerController extends Controller
                     'teacher',
                     'writtenAnswerQuestion.writtenAnswerQuestion',
                     'writtenAnswerQuestion.writtenAnswerQuestionScript',
+                    'review.user',
+                    'review.teacher',
+                    'review.conversations.user' // Include conversation thread
                 )
                 ->first();
 
@@ -674,6 +677,156 @@ class AnswerController extends Controller
             'subject_breakdown' => array_values($subjectStats),
             'topic_breakdown' => array_values($topicStats),
         ];
+    }
+
+    /**
+     * Student submits review (rating + comment) for evaluated answer sheet
+     * Similar to Google Play Store review system
+     */
+    public function submitReview(Request $request)
+    {
+        $request->validate([
+            'written_answer_id' => 'required|exists:written_answers,id',
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|max:1000',
+        ]);
+
+        // Get the written answer
+        $writtenAnswer = WrittenAnswer::where('id', $request->written_answer_id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$writtenAnswer) {
+            return $this->errorMessage('Answer sheet not found or you do not have permission.');
+        }
+
+        // Check if answer is evaluated
+        if ($writtenAnswer->is_checked == 0) {
+            return $this->errorMessage('Cannot submit review before teacher evaluation is complete.');
+        }
+
+        // Check if teacher_id exists
+        if (!$writtenAnswer->teacher_id) {
+            return $this->errorMessage('No teacher assigned to this evaluation.');
+        }
+
+        // Check if review already exists
+        $existingReview = \App\Models\WrittenAnswerReview::where('written_answer_id', $request->written_answer_id)->first();
+
+        if ($existingReview) {
+            // Update existing review
+            $existingReview->update([
+                'rating' => $request->rating,
+                'comment' => $request->comment,
+            ]);
+
+            return $this->successMessage('Review updated successfully', $existingReview);
+        }
+
+        // Create new review
+        $review = \App\Models\WrittenAnswerReview::create([
+            'written_answer_id' => $request->written_answer_id,
+            'user_id' => Auth::id(),
+            'teacher_id' => $writtenAnswer->teacher_id,
+            'rating' => $request->rating,
+            'comment' => $request->comment,
+        ]);
+
+        return $this->successMessage('Review submitted successfully', $review);
+    }
+
+    /**
+     * Add message to review conversation (Student, Teacher, or Admin)
+     * Supports ongoing conversation thread
+     */
+    public function addConversationMessage(Request $request)
+    {
+        $request->validate([
+            'review_id' => 'required|exists:written_answer_reviews,id',
+            'message' => 'required|string|max:2000',
+        ]);
+
+        // Get the review
+        $review = \App\Models\WrittenAnswerReview::where('id', $request->review_id)->first();
+
+        if (!$review) {
+            return $this->errorMessage('Review not found.');
+        }
+
+        $user = Auth::user();
+        
+        // Determine user type
+        $userType = 'student';
+        if ($user->id == $review->teacher_id) {
+            $userType = 'teacher';
+        }
+        // Check if user is admin (you can customize this check based on your admin detection)
+        if (isset($user->is_admin) && $user->is_admin == 1) {
+            $userType = 'admin';
+        }
+
+        // Verify user has permission to comment
+        // Students can only comment on their own reviews
+        // Teachers/Admins can reply to reviews they're associated with or any review (for admins)
+        if ($userType === 'student' && $review->user_id != $user->id) {
+            return $this->errorMessage('You can only comment on your own reviews.');
+        }
+
+        if ($userType === 'teacher' && $review->teacher_id != $user->id) {
+            return $this->errorMessage('You can only reply to your own reviews.');
+        }
+
+        // Create conversation message
+        $conversation = \App\Models\WrittenAnswerReviewConversation::create([
+            'review_id' => $request->review_id,
+            'user_id' => $user->id,
+            'user_type' => $userType,
+            'message' => $request->message,
+        ]);
+
+        // Load user relationship
+        $conversation->load('user');
+
+        return $this->successMessage('Message posted successfully', $conversation);
+    }
+
+    /**
+     * Get all conversation messages for a review
+     */
+    public function getReviewConversation(Request $request)
+    {
+        $request->validate([
+            'review_id' => 'required|exists:written_answer_reviews,id',
+        ]);
+
+        $review = \App\Models\WrittenAnswerReview::with([
+            'conversations.user',
+            'user',
+            'teacher',
+            'writtenAnswer'
+        ])->find($request->review_id);
+
+        if (!$review) {
+            return $this->errorMessage('Review not found.');
+        }
+
+        return $this->successMessage('Conversation retrieved successfully', $review);
+    }
+
+    /**
+     * Legacy method - kept for backward compatibility
+     * Now creates a conversation message instead
+     */
+    public function replyToReview(Request $request)
+    {
+        $request->validate([
+            'review_id' => 'required|exists:written_answer_reviews,id',
+            'reply' => 'required|string|max:1000',
+        ]);
+
+        // Redirect to new conversation method
+        $request->merge(['message' => $request->reply]);
+        return $this->addConversationMessage($request);
     }
 
 }
