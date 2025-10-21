@@ -81,6 +81,40 @@
                                 <p>{{ number_format($data->assesment_count, 0) }} Student Exam Papers</p>
                             </div>
                             <div class="col-md-6 mt-3">
+                                <h6>Average Rating</h6>
+                                <p>
+                                    @if($data->total_reviews > 0)
+                                        <span style="font-size: 18px; font-weight: bold; color: #f39c12;">
+                                            {{ $data->avg_rating }}
+                                        </span>
+                                        <span style="color: #f39c12;">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                @if($i <= floor($data->avg_rating))
+                                                    ⭐
+                                                @elseif($i - 0.5 <= $data->avg_rating)
+                                                    ⭐
+                                                @else
+                                                    ☆
+                                                @endif
+                                            @endfor
+                                        </span>
+                                        <span style="color: #7e7e7e; font-size: 14px;">
+                                            ({{ number_format($data->total_reviews, 0) }} {{ $data->total_reviews == 1 ? 'review' : 'reviews' }})
+                                        </span>
+                                        <br>
+                                        <a href="{{ route('teacher.reviews', $data->id) }}" class="btn btn-sm btn-primary mt-2">
+                                            <i class="fas fa-comments"></i> View All Reviews & Conversations
+                                        </a>
+                                    @else
+                                        <span style="color: #7e7e7e;">No reviews yet</span>
+                                    @endif
+                                </p>
+                            </div>
+                            <div class="col-md-6 mt-3">
+                                <h6>Total Reviews</h6>
+                                <p>{{ number_format($data->total_reviews, 0) }} Student {{ $data->total_reviews == 1 ? 'Review' : 'Reviews' }}</p>
+                            </div>
+                            <div class="col-md-6 mt-3">
                                 <h6>Image</h6>
                                 <img src="{{ asset($data->image) }}" style="height:150px;">
                             </div>

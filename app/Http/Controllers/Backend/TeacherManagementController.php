@@ -156,7 +156,104 @@ class TeacherManagementController extends Controller {
             return back();
         }
 
+        // Get rating statistics from written_answer_reviews
+        $ratingStats = \DB::table('written_answer_reviews')
+            ->where('teacher_id', $id)
+            ->selectRaw('AVG(rating) as avg_rating, COUNT(*) as total_reviews')
+            ->first();
+
+        $data->avg_rating = $ratingStats->avg_rating ? round($ratingStats->avg_rating, 1) : 0;
+        $data->total_reviews = $ratingStats->total_reviews ?? 0;
+
         return view('backend.teacher.profile.show', compact('data'));
+    }
+
+    public function showReviews($id) {
+        $teacher = User::where('id', $id)->where('type', 'teacher')->first();
+
+        if (!$teacher) {
+            return back()->withToastError('Teacher not found');
+        }
+
+        // Get all reviews for this teacher with conversations
+        $reviews = \App\Models\WrittenAnswerReview::where('teacher_id', $id)
+            ->with([
+                'user',
+                'teacher',
+                'writtenAnswer.written',
+                'conversations' => function($query) {
+                    $query->orderBy('created_at', 'asc');
+                },
+                'conversations.user'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('backend.teacher.profile.reviews', compact('teacher', 'reviews'));
+    }
+
+    public function addAdminReply(Request $request) {
+        $request->validate([
+            'review_id' => 'required|exists:written_answer_reviews,id',
+            'message' => 'required|string|max:2000',
+        ]);
+
+        // Create admin conversation message
+        \App\Models\WrittenAnswerReviewConversation::create([
+            'review_id' => $request->review_id,
+            'user_id' => auth()->id(),
+            'user_type' => 'admin',
+            'message' => $request->message,
+        ]);
+
+        return back()->withToastSuccess('Reply added successfully');
+    }
+
+    public function editConversationMessage(Request $request) {
+        $request->validate([
+            'message_id' => 'required|exists:written_answer_review_conversations,id',
+            'message' => 'required|string|max:2000',
+        ]);
+
+        $conversation = \App\Models\WrittenAnswerReviewConversation::find($request->message_id);
+
+        // Check if message belongs to current admin
+        if ($conversation->user_id != auth()->id()) {
+            return back()->withToastError('You can only edit your own messages');
+        }
+
+        // Check if message is from admin
+        if ($conversation->user_type != 'admin') {
+            return back()->withToastError('Only admin messages can be edited');
+        }
+
+        $conversation->update([
+            'message' => $request->message,
+        ]);
+
+        return back()->withToastSuccess('Message updated successfully');
+    }
+
+    public function deleteConversationMessage(Request $request) {
+        $request->validate([
+            'message_id' => 'required|exists:written_answer_review_conversations,id',
+        ]);
+
+        $conversation = \App\Models\WrittenAnswerReviewConversation::find($request->message_id);
+
+        // Check if message belongs to current admin
+        if ($conversation->user_id != auth()->id()) {
+            return back()->withToastError('You can only delete your own messages');
+        }
+
+        // Check if message is from admin
+        if ($conversation->user_type != 'admin') {
+            return back()->withToastError('Only admin messages can be deleted');
+        }
+
+        $conversation->delete();
+
+        return back()->withToastSuccess('Message deleted successfully');
     }
 
     //wallet

@@ -877,7 +877,7 @@
 							"host": ["{{base_url}}answer"],
 							"path": ["show-preliminary-answer"]
 						},
-						"description": "Get exam answer summary with statistics:\n- positive_count: Total correct answers\n- negative_count: Total wrong answers\n- empty_count: Total unanswered\n- obtained_marks: Final score\n- result_status: Pass/Fail\n- User's position in merit list\n- subject_breakdown: Performance breakdown by subject (correct/wrong/skipped per subject)\n- topic_breakdown: Performance breakdown by topic (correct/wrong/skipped per topic)"
+						"description": "Get exam answer summary with statistics.\n\n**For MCQ/Preliminary Exams:**\n- positive_count: Total correct answers\n- negative_count: Total wrong answers\n- empty_count: Total unanswered\n- obtained_marks: Final score\n- result_status: Pass/Fail\n- User's position in merit list\n- subject_breakdown: Performance by subject\n- topic_breakdown: Performance by topic\n\n**For Written Exams (ADDITIONAL DATA):**\n- ✅ **review**: Student's review of teacher evaluation (if submitted)\n  - rating: 1-5 stars\n  - comment: Review text\n  - user: Student info\n  - teacher: Teacher info\n  - **conversations**: Full conversation thread array\n    - Each message includes: user_type, message, created_at, user\n    - Shows teacher replies, admin replies, and student messages\n- teacher: Teacher who evaluated\n- obtained_mark: Marks received\n- is_checked: Evaluation status\n\n**Use Cases:**\n- Students view their answer summary\n- Students see their review and all replies\n- Students read full conversation with teacher/admin\n\n**Parameters:**\n- exam_id: For MCQ exams\n- written_id: For written exams"
 					},
 					"response": [
 						{
@@ -906,6 +906,34 @@
 							"_postman_previewlanguage": "json",
 							"header": [],
 							"body": "{\n    \"status\": true,\n    \"message\": \"ok\",\n    \"data\": {\n        \"question_count\": 100,\n        \"total_examinee\": 150,\n        \"total_passed_examinee\": 80,\n        \"my_position\": 25,\n        \"subjects\": [\n            {\n                \"id\": 1,\n                \"name\": \"Bangla\"\n            },\n            {\n                \"id\": 2,\n                \"name\": \"English\"\n            }\n        ],\n        \"sources\": [\n            {\n                \"id\": 1,\n                \"topic\": \"Grammar\",\n                \"source\": \"BCS 2020\"\n            }\n        ],\n        \"subject_breakdown\": [\n            {\n                \"subject_id\": 1,\n                \"subject_name\": \"Bangla\",\n                \"total_questions\": 35,\n                \"correct\": 28,\n                \"wrong\": 5,\n                \"skipped\": 2\n            },\n            {\n                \"subject_id\": 2,\n                \"subject_name\": \"English\",\n                \"total_questions\": 35,\n                \"correct\": 25,\n                \"wrong\": 8,\n                \"skipped\": 2\n            },\n            {\n                \"subject_id\": 3,\n                \"subject_name\": \"Math\",\n                \"total_questions\": 30,\n                \"correct\": 20,\n                \"wrong\": 7,\n                \"skipped\": 3\n            }\n        ],\n        \"topic_breakdown\": [\n            {\n                \"topic_id\": 1,\n                \"topic_name\": \"Grammar\",\n                \"subject_id\": 1,\n                \"subject_name\": \"Bangla\",\n                \"total_questions\": 15,\n                \"correct\": 12,\n                \"wrong\": 2,\n                \"skipped\": 1\n            },\n            {\n                \"topic_id\": 2,\n                \"topic_name\": \"Literature\",\n                \"subject_id\": 1,\n                \"subject_name\": \"Bangla\",\n                \"total_questions\": 20,\n                \"correct\": 16,\n                \"wrong\": 3,\n                \"skipped\": 1\n            },\n            {\n                \"topic_id\": 5,\n                \"topic_name\": \"Vocabulary\",\n                \"subject_id\": 2,\n                \"subject_name\": \"English\",\n                \"total_questions\": 18,\n                \"correct\": 14,\n                \"wrong\": 3,\n                \"skipped\": 1\n            }\n        ],\n        \"answer\": {\n            \"id\": 1,\n            \"user_id\": 1909,\n            \"exam_id\": 1,\n            \"type\": \"Live\",\n            \"answer\": \"[A,B,C,D,A,B,C,D,...]\",\n            \"positive_count\": 73,\n            \"negative_count\": 20,\n            \"empty_count\": 7,\n            \"positive_marks\": 73.00,\n            \"negative_marks\": 5.00,\n            \"empty_marks\": 0.00,\n            \"obtained_marks\": 68.00,\n            \"result_status\": 1,\n            \"created_at\": \"2025-10-16T10:30:00.000000Z\",\n            \"updated_at\": \"2025-10-16T10:30:00.000000Z\",\n            \"user\": {\n                \"id\": 1909,\n                \"name\": \"John Doe\",\n                \"phone\": \"01700000000\"\n            },\n            \"exam\": {\n                \"id\": 1,\n                \"name\": \"BCS Preliminary Mock Test\",\n                \"pass_marks\": 40\n            }\n        }\n    }\n}"
+						},
+						{
+							"name": "Written Exam with Review & Conversations",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "written_id",
+											"value": "1",
+											"type": "text",
+											"description": "For written exams"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}answer/show-preliminary-answer",
+									"host": ["{{base_url}}answer"],
+									"path": ["show-preliminary-answer"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"ok\",\n    \"data\": {\n        \"answer\": {\n            \"id\": 123,\n            \"written_id\": 1,\n            \"user_id\": 1909,\n            \"obtained_mark\": 75.00,\n            \"is_checked\": 1,\n            \"teacher_id\": 5,\n            \"created_at\": \"2025-10-16T10:00:00Z\",\n            \"user\": {\n                \"id\": 1909,\n                \"name\": \"John Doe\",\n                \"phone\": \"01700000000\"\n            },\n            \"teacher\": {\n                \"id\": 5,\n                \"name\": \"Mr. Rahman\",\n                \"phone\": \"01800000000\"\n            },\n            \"written\": {\n                \"id\": 1,\n                \"title\": \"BCS Written Exam 2025\"\n            },\n            \"review\": {\n                \"id\": 1,\n                \"written_answer_id\": 123,\n                \"user_id\": 1909,\n                \"teacher_id\": 5,\n                \"rating\": 5,\n                \"comment\": \"Excellent evaluation! Very detailed feedback.\",\n                \"created_at\": \"2025-10-16T17:50:00Z\",\n                \"updated_at\": \"2025-10-16T17:50:00Z\",\n                \"user\": {\n                    \"id\": 1909,\n                    \"name\": \"John Doe\"\n                },\n                \"teacher\": {\n                    \"id\": 5,\n                    \"name\": \"Mr. Rahman\"\n                },\n                \"conversations\": [\n                    {\n                        \"id\": 1,\n                        \"review_id\": 1,\n                        \"user_id\": 5,\n                        \"user_type\": \"teacher\",\n                        \"message\": \"Thank you for your feedback! I'm glad you found it helpful.\",\n                        \"created_at\": \"2025-10-16T18:00:00Z\",\n                        \"user\": {\n                            \"id\": 5,\n                            \"name\": \"Mr. Rahman\"\n                        }\n                    },\n                    {\n                        \"id\": 2,\n                        \"review_id\": 1,\n                        \"user_id\": 1909,\n                        \"user_type\": \"student\",\n                        \"message\": \"I have a question about question #5 marking...\",\n                        \"created_at\": \"2025-10-16T18:30:00Z\",\n                        \"user\": {\n                            \"id\": 1909,\n                            \"name\": \"John Doe\"\n                        }\n                    },\n                    {\n                        \"id\": 3,\n                        \"review_id\": 1,\n                        \"user_id\": 5,\n                        \"user_type\": \"teacher\",\n                        \"message\": \"Good question! Let me explain the marking criteria for question #5...\",\n                        \"created_at\": \"2025-10-16T19:00:00Z\",\n                        \"user\": {\n                            \"id\": 5,\n                            \"name\": \"Mr. Rahman\"\n                        }\n                    },\n                    {\n                        \"id\": 4,\n                        \"review_id\": 1,\n                        \"user_id\": 1,\n                        \"user_type\": \"admin\",\n                        \"message\": \"This conversation has been reviewed and verified by admin.\",\n                        \"created_at\": \"2025-10-16T19:30:00Z\",\n                        \"user\": {\n                            \"id\": 1,\n                            \"name\": \"Admin\"\n                        }\n                    }\n                ]\n            },\n            \"questions\": []\n        }\n    }\n}"
 						}
 					]
 				},
@@ -1151,7 +1179,7 @@
 							"host": ["{{base_url}}answer"],
 							"path": ["submit-review"]
 						},
-						"description": "Students can rate teacher's evaluation (1-5 stars) and write a review comment. Similar to Google Play Store reviews. Can update existing reviews."
+						"description": "Students can rate teacher's evaluation (1-5 stars) and write a review comment.\n\n**IMPORTANT:** This endpoint serves TWO purposes:\n1. **Submit NEW review** - First time submission\n2. **UPDATE existing review** - Call again with same written_answer_id to update rating/comment\n\n**How Update Works:**\n- Use the SAME endpoint (submit-review)\n- Use the SAME written_answer_id\n- System automatically detects existing review\n- Updates rating and comment (doesn't create duplicate)\n- Response message changes to \"Review updated successfully\"\n\n**Security:**\n- Student must own the answer sheet\n- Answer must be evaluated (is_checked = 1)\n- Teacher must be assigned\n\n**Validation:**\n- rating: Required, integer, 1-5\n- comment: Required, string, max 1000 characters"
 					},
 					"response": [
 						{
@@ -1190,6 +1218,46 @@
 							"_postman_previewlanguage": "json",
 							"header": [],
 							"body": "{\n    \"status\": true,\n    \"message\": \"Review submitted successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"written_answer_id\": 123,\n        \"user_id\": 1909,\n        \"teacher_id\": 5,\n        \"rating\": 5,\n        \"comment\": \"Excellent evaluation! Very detailed feedback and helpful comments.\",\n        \"teacher_reply\": null,\n        \"replied_at\": null,\n        \"created_at\": \"2025-10-16T17:50:00.000000Z\",\n        \"updated_at\": \"2025-10-16T17:50:00.000000Z\"\n    }\n}"
+						},
+						{
+							"name": "Update Review (Same Endpoint)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "written_answer_id",
+											"value": "123",
+											"type": "text",
+											"description": "SAME written_answer_id as original review"
+										},
+										{
+											"key": "rating",
+											"value": "4",
+											"type": "text",
+											"description": "NEW/UPDATED rating"
+										},
+										{
+											"key": "comment",
+											"value": "Good evaluation, but I think question #5 was marked incorrectly.",
+											"type": "text",
+											"description": "NEW/UPDATED comment"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}answer/submit-review",
+									"host": ["{{base_url}}answer"],
+									"path": ["submit-review"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"Review updated successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"written_answer_id\": 123,\n        \"user_id\": 1909,\n        \"teacher_id\": 5,\n        \"rating\": 4,\n        \"comment\": \"Good evaluation, but I think question #5 was marked incorrectly.\",\n        \"created_at\": \"2025-10-16T17:50:00.000000Z\",\n        \"updated_at\": \"2025-10-16T18:30:00.000000Z\"\n    }\n}"
 						}
 					]
 				},
@@ -1230,7 +1298,7 @@
 							"host": ["{{base_url}}answer"],
 							"path": ["add-conversation"]
 						},
-						"description": "Add message to review conversation thread. Works for students, teachers, and admins. System auto-detects user type. Creates ongoing conversation thread."
+						"description": "Add message to review conversation thread. Creates ongoing conversation between student, teacher, and admin.\n\n**Who Can Use:**\n- ✅ Students: Can add messages to THEIR OWN reviews\n- ✅ Teachers: Can reply to reviews they're associated with\n- ✅ Admins: Can reply to any review\n\n**User Type Auto-Detection:**\nSystem automatically detects:\n- If user_id == teacher_id → user_type = 'teacher'\n- If user.is_admin == 1 → user_type = 'admin'\n- Otherwise → user_type = 'student'\n\n**Use Cases:**\n- Student responds to teacher's reply\n- Student asks follow-up questions\n- Teacher explains marking\n- Admin mediates disputes\n\n**Validation:**\n- review_id: Required, must exist\n- message: Required, max 2000 characters\n\n**Note:** Students can add UNLIMITED messages to continue conversation"
 					},
 					"response": [
 						{
@@ -1264,6 +1332,94 @@
 							"_postman_previewlanguage": "json",
 							"header": [],
 							"body": "{\n    \"status\": true,\n    \"message\": \"Message posted successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"review_id\": 1,\n        \"user_id\": 1909,\n        \"user_type\": \"student\",\n        \"message\": \"Thank you for your feedback! I have a follow-up question...\",\n        \"created_at\": \"2025-10-16T18:30:00.000000Z\",\n        \"updated_at\": \"2025-10-16T18:30:00.000000Z\",\n        \"user\": {\n            \"id\": 1909,\n            \"name\": \"John Doe\",\n            \"phone\": \"01700000000\"\n        }\n    }\n}"
+						},
+						{
+							"name": "Teacher Reply (Auto-Detected)",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{teacher_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "review_id",
+											"value": "1",
+											"type": "text",
+											"description": "ID of the review to reply to"
+										},
+										{
+											"key": "message",
+											"value": "Thank you for your positive feedback! I'm glad you found my evaluation helpful.",
+											"type": "text",
+											"description": "Teacher's reply message"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}answer/add-conversation",
+									"host": ["{{base_url}}answer"],
+									"path": ["add-conversation"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"Message posted successfully\",\n    \"data\": {\n        \"id\": 2,\n        \"review_id\": 1,\n        \"user_id\": 5,\n        \"user_type\": \"teacher\",\n        \"message\": \"Thank you for your positive feedback! I'm glad you found my evaluation helpful.\",\n        \"created_at\": \"2025-10-16T18:00:00.000000Z\",\n        \"updated_at\": \"2025-10-16T18:00:00.000000Z\",\n        \"user\": {\n            \"id\": 5,\n            \"name\": \"Mr. Rahman\",\n            \"phone\": \"01800000000\"\n        }\n    }\n}"
+						},
+						{
+							"name": "Admin Reply (Auto-Detected)",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{admin_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "review_id",
+											"value": "1",
+											"type": "text",
+											"description": "ID of the review"
+										},
+										{
+											"key": "message",
+											"value": "This conversation has been reviewed and verified by administration.",
+											"type": "text",
+											"description": "Admin's message"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}answer/add-conversation",
+									"host": ["{{base_url}}answer"],
+									"path": ["add-conversation"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"Message posted successfully\",\n    \"data\": {\n        \"id\": 3,\n        \"review_id\": 1,\n        \"user_id\": 1,\n        \"user_type\": \"admin\",\n        \"message\": \"This conversation has been reviewed and verified by administration.\",\n        \"created_at\": \"2025-10-16T19:00:00.000000Z\",\n        \"updated_at\": \"2025-10-16T19:00:00.000000Z\",\n        \"user\": {\n            \"id\": 1,\n            \"name\": \"Admin\",\n            \"phone\": \"01900000000\"\n        }\n    }\n}"
 						}
 					]
 				},
@@ -1298,7 +1454,7 @@
 							"host": ["{{base_url}}answer"],
 							"path": ["get-conversation"]
 						},
-						"description": "Get full conversation thread for a review including all messages from student, teacher, and admin."
+						"description": "Get full conversation thread for a review including all messages from student, teacher, and admin.\n\n**Returns:**\n- Review details (rating, comment)\n- Student information\n- Teacher information\n- Written answer details\n- Complete conversation array with all messages\n\n**Conversation Format:**\nEach message includes:\n- id: Message ID\n- user_type: 'student' | 'teacher' | 'admin'\n- message: The conversation text\n- created_at: Timestamp\n- user: User information (name, phone, etc.)\n\n**Use Cases:**\n- Student views full conversation history\n- Display chat-style interface\n- Load conversation thread\n\n**Alternative:** Can also use `show-preliminary-answer` which includes review + conversations in the answer response"
 					},
 					"response": [
 						{
