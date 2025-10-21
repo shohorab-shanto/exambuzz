@@ -18,6 +18,10 @@ class Exam extends Model {
         return $this->hasOne(PreliminaryAnswer::class);
     }
 
+    public function package() {
+        return $this->belongsTo(Package::class);
+    }
+
     protected $casts = [
         'published_at' => 'datetime: Y-m-d H:i:s',
         'expired_at'   => 'datetime: Y-m-d H:i:s',

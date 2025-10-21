@@ -13,11 +13,57 @@ class SubscribtionController extends Controller
     public function packages()
     {
         $data = [];
-        $data['course_base'] = Package::withCount('enrollStudentsCount')->where('type', 1)->get();
-        $data['exam_base'] = Package::withCount('enrollStudentsCount')->where('type', 2)->latest()->paginate();
+        $data['course_base'] = Package::withCount('enrollStudentsCount')
+            ->where('type', 1)
+            ->where('status', 1)
+            ->where(function($q) {
+                $q->whereNull('published_at')
+                  ->orWhere('published_at', '<=', now());
+            })
+            ->get();
+            
+        $data['exam_base'] = Package::withCount('enrollStudentsCount')
+            ->where('type', 2)
+            ->where('status', 1)
+            ->where(function($q) {
+                $q->whereNull('published_at')
+                  ->orWhere('published_at', '<=', now());
+            })
+            ->latest()
+            ->paginate();
 
         return $this->successMessage('', $data);
+    }
 
+    public function upcomingPackages()
+    {
+        $data = [];
+        
+        // Course-based upcoming packages
+        $data['course_base'] = Package::withCount('enrollStudentsCount')
+            ->where('type', 1)
+            ->where(function($q) {
+                $q->where('published_at', '>', now())
+                  ->orWhere(function($query) {
+                      $query->whereNull('published_at')->where('status', 0);
+                  });
+            })
+            ->orderBy('published_at', 'asc')
+            ->get();
+
+        // Exam-based upcoming packages
+        $data['exam_base'] = Package::withCount('enrollStudentsCount')
+            ->where('type', 2)
+            ->where(function($q) {
+                $q->where('published_at', '>', now())
+                  ->orWhere(function($query) {
+                      $query->whereNull('published_at')->where('status', 0);
+                  });
+            })
+            ->orderBy('published_at', 'asc')
+            ->paginate();
+
+        return $this->successMessage('Upcoming packages retrieved successfully', $data);
     }
 
     public function purchasePackage(Request $request)

@@ -205,6 +205,10 @@ class ExamManageController extends Controller
                 $examQuery = $examQuery->where('subject_id', 'LIKE', $request->subject_id . '%');
             }
 
+            if ($request->package_id) {
+                $examQuery = $examQuery->where('package_id', $request->package_id);
+            }
+
             if ($search) {
                 $examQuery = $examQuery->where('name', 'LIKE', '%' . $search . '%');
             }
@@ -250,6 +254,10 @@ class ExamManageController extends Controller
                 $exam = $exam->where('subject_id', 'LIKE', $request->subject_id . '%');
             }
 
+            if ($request->package_id) {
+                $exam = $exam->where('package_id', $request->package_id);
+            }
+
             $exam = $exam->orderByDesc('id')
                 ->with([
                     'writtenQuestion',
@@ -274,6 +282,10 @@ class ExamManageController extends Controller
 
                 if ($child) {
                     $exam = $exam->where('childcategory', $child);
+                }
+
+                if ($request->package_id) {
+                    $exam = $exam->where('package_id', $request->package_id);
                 }
 
                 $exam = $exam->orderByDesc('id')

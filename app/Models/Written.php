@@ -26,4 +26,8 @@ class Written extends Model {
         return $this->hasMany(WrittenAnswer::class);
     }
 
+    public function package() {
+        return $this->belongsTo(Package::class);
+    }
+
 }

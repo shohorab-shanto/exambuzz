@@ -395,6 +395,12 @@
 									"value": "",
 									"type": "text",
 									"description": "Optional - search exam name"
+								},
+								{
+									"key": "package_id",
+									"value": "",
+									"type": "text",
+									"description": "Optional - filter by package ID (NEW)"
 								}
 							]
 						},
@@ -402,7 +408,8 @@
 							"raw": "{{base_url}}exam/archive",
 							"host": ["{{base_url}}exam"],
 							"path": ["archive"]
-						}
+						},
+						"description": "Get archived (expired) exams with filtering options.\n\n**Filters Available:**\n- category: BCS, Bank, Primary, etc.\n- subcategory: Preliminary, Written\n- childcategory: Cadre, Non-Cadre, etc.\n- subject_id: Filter by subject\n- search: Search exam name\n- **package_id: Filter by package** (NEW)\n\n**New Feature:**\nStudents can now filter archived exams by the package they purchased. Pass `package_id` to see only exams from that specific package.\n\n**Use Case:**\nShow \"My Package Exams\" - filter archive by user's purchased package to show only exams they have access to."
 					}
 				},
 				{
@@ -1680,8 +1687,40 @@
 						"url": {
 							"raw": "{{base_url}}packages",
 							"host": ["{{base_url}}packages"]
+						},
+						"description": "Get all currently available packages (active and published).\n\n**Filters Applied:**\n- status = 1 (active only)\n- published_at IS NULL OR published_at <= NOW()\n\n**Returns:**\n- course_base: Course-based packages (type = 1)\n- exam_base: Exam-based packages (type = 2)\n\n**Note:** This endpoint does NOT return upcoming/scheduled packages. Use '/upcoming-packages' for those."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Upcoming Packages",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}upcoming-packages",
+							"host": ["{{base_url}}upcoming-packages"]
+						},
+						"description": "Get all upcoming/scheduled packages that are not yet available for purchase.\n\n**Upcoming Criteria:**\n- published_at > NOW() (scheduled for future)\n- OR (published_at IS NULL AND status = 0) (draft packages)\n\n**Returns:**\n- course_base: Upcoming course-based packages\n- exam_base: Upcoming exam-based packages\n- Ordered by published_at (earliest first)\n\n**Use Cases:**\n- Show \"Coming Soon\" packages\n- Display scheduled launches\n- Preview future offerings\n\n**Fields Included:**\n- id, name, details, permission\n- amount, validity, discount_amount\n- image, banner_image\n- published_at (launch date)\n- enroll_students_count (interest tracking)"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}upcoming-packages",
+									"host": ["{{base_url}}upcoming-packages"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"Upcoming packages retrieved successfully\",\n    \"data\": {\n        \"course_base\": [\n            {\n                \"id\": 5,\n                \"name\": \"Premium BCS Course 2026\",\n                \"details\": \"Complete BCS preparation package launching January 2026\",\n                \"permission\": [\"bcs_preliminary\", \"bcs_written\", \"materials\"],\n                \"amount\": 5000,\n                \"validity\": 365,\n                \"status\": 0,\n                \"image\": \"images/packages/package5.png\",\n                \"banner_image\": \"images/banners/bcs2026.jpg\",\n                \"published_at\": \"2026-01-01\",\n                \"discount_amount\": 500,\n                \"enroll_students_count\": 0,\n                \"created_at\": \"2025-10-16T10:00:00Z\",\n                \"updated_at\": \"2025-10-16T10:00:00Z\"\n            }\n        ],\n        \"exam_base\": {\n            \"current_page\": 1,\n            \"data\": [\n                {\n                    \"id\": 12,\n                    \"name\": \"Bank Job Special Package 2026\",\n                    \"details\": \"20 bank job mock exams - Launching December 2025\",\n                    \"permission\": [\"bank_preliminary\", \"bank_written\"],\n                    \"amount\": 2000,\n                    \"validity\": 180,\n                    \"status\": 0,\n                    \"image\": \"images/packages/bank2026.png\",\n                    \"banner_image\": \"images/banners/bank.jpg\",\n                    \"published_at\": \"2025-12-01\",\n                    \"discount_amount\": 200,\n                    \"enroll_students_count\": 0\n                }\n            ],\n            \"total\": 1\n        }\n    }\n}"
 						}
-					}
+					]
 				},
 				{
 					"name": "Purchase Package",

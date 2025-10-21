@@ -34,4 +34,14 @@ class Package extends Model {
         return $this->hasMany(PackageHistory::class);
     }
 
+    // Exams belonging to this package
+    public function exams() {
+        return $this->hasMany(Exam::class);
+    }
+
+    // Written exams belonging to this package
+    public function writtens() {
+        return $this->hasMany(Written::class);
+    }
+
 }

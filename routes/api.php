@@ -230,6 +230,7 @@ Route::controller(UserAuthController::class)->prefix('/auth')->group(function ()
 
 Route::controller(SubscribtionController::class)->group(function () {
     Route::post('/packages', 'packages');
+    Route::post('/upcoming-packages', 'upcomingPackages');
     Route::post('/purchase-package', 'purchasePackage');
     Route::post('/package-history', 'packageHistory');
     Route::post('/v2/package-history', 'packageHistoryv2')->middleware('auth:sanctum');
