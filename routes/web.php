@@ -169,6 +169,14 @@ Route::middleware('auth:admin')->group(function () {
 
     Route::resource('/notice-board', NoticeBoardController::class);
 
+    // Admin Notification Management
+    Route::prefix('/notifications')->name('notifications.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Backend\AdminNotificationController::class, 'index'])->name('index');
+        Route::post('/send', [App\Http\Controllers\Backend\AdminNotificationController::class, 'sendNotification'])->name('send');
+        Route::get('/statistics', [App\Http\Controllers\Backend\AdminNotificationController::class, 'statistics'])->name('statistics');
+        Route::get('/users', [App\Http\Controllers\Backend\AdminNotificationController::class, 'getUserList'])->name('users');
+    });
+
     /**
      * teacher section
      */

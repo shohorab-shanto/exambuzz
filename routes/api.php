@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AnswerController;
 use App\Http\Controllers\Api\ExamManageController;
 use App\Http\Controllers\Api\FirebaseAuthController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\RevisionController;
 use App\Http\Controllers\Api\SocialLoginController;
 use App\Http\Controllers\Api\SubscribtionController;
@@ -102,37 +103,22 @@ Route::post('/privacy-policy', function (Request $request) {
     ]);
 
 });
-Route::middleware('auth:sanctum')->post('/store-fcm-token', function (Request $request) {
-
-    $data = User::find(Auth::id());
-    $data->fcm_token = $request->fcm_token;
-    $data->save();
-
-    return response()->json([
-        'status' => true,
-        'data' => $data,
-    ]);
-
-});
-Route::middleware('auth:sanctum')->post('/notification', function (Request $request) {
-
-    $data = Notification::where('user_id', Auth::id())->with('user', 'written')->orderBy('id', 'desc')->paginate();
-
-    return response()->json([
-        'status' => true,
-        'data' => $data,
-    ]);
-
-});
-Route::middleware('auth:sanctum')->post('/make-notification-seen', function (Request $request) {
-
-    $data = Notification::where('user_id', Auth::id())->with('user', 'written')->orderBy('id', 'desc')->paginate();
-
-    return response()->json([
-        'status' => true,
-        'data' => $data,
-    ]);
-
+// Notification Routes - Using NotificationController
+Route::middleware('auth:sanctum')->group(function () {
+    // FCM Token Management
+    Route::post('/store-fcm-token', [NotificationController::class, 'storeFcmToken']);
+    Route::post('/remove-fcm-token', [NotificationController::class, 'removeFcmToken']);
+    
+    // Notification Management
+    Route::post('/notification', [NotificationController::class, 'index']); // Get all notifications (backward compatible)
+    Route::get('/notifications', [NotificationController::class, 'index']); // RESTful endpoint
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
+    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+    
+    // Backward compatibility for old endpoint
+    Route::post('/make-notification-seen', [NotificationController::class, 'markAllAsRead']);
 });
 
 

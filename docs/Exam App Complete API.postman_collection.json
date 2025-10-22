@@ -2330,7 +2330,7 @@
       "name": "Notifications",
       "item": [
         {
-          "name": "Get Notifications",
+          "name": "Get All Notifications (Legacy)",
           "request": {
             "auth": {
               "type": "bearer",
@@ -2349,11 +2349,130 @@
               "host": [
                 "{{base_url}}notification"
               ]
-            }
+            },
+            "description": "Get all notifications for authenticated user (legacy endpoint)"
           }
         },
         {
-          "name": "Mark Notification as Seen",
+          "name": "Get Notifications (RESTful)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}notifications?per_page=15&status=0",
+              "host": [
+                "{{base_url}}notifications"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "description": "Number of notifications per page"
+                },
+                {
+                  "key": "status",
+                  "value": "0",
+                  "description": "Filter: null=all, 0=unread, 1=read"
+                }
+              ]
+            },
+            "description": "Get paginated notifications with optional status filter"
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}notifications/unread-count",
+              "host": [
+                "{{base_url}}notifications"
+              ],
+              "path": [
+                "unread-count"
+              ]
+            },
+            "description": "Get count of unread notifications"
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}notifications/1/mark-as-read",
+              "host": [
+                "{{base_url}}notifications"
+              ],
+              "path": [
+                "1",
+                "mark-as-read"
+              ]
+            },
+            "description": "Mark a specific notification as read by ID"
+          }
+        },
+        {
+          "name": "Mark All Notifications as Read",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}notifications/mark-all-as-read",
+              "host": [
+                "{{base_url}}notifications"
+              ],
+              "path": [
+                "mark-all-as-read"
+              ]
+            },
+            "description": "Mark all notifications as read for authenticated user"
+          }
+        },
+        {
+          "name": "Mark Notification as Seen (Legacy)",
           "request": {
             "auth": {
               "type": "bearer",
@@ -2372,7 +2491,35 @@
               "host": [
                 "{{base_url}}make-notification-seen"
               ]
-            }
+            },
+            "description": "Legacy endpoint - marks all notifications as read"
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}notifications/1",
+              "host": [
+                "{{base_url}}notifications"
+              ],
+              "path": [
+                "1"
+              ]
+            },
+            "description": "Delete a specific notification by ID"
           }
         },
         {
@@ -2395,8 +2542,9 @@
               "formdata": [
                 {
                   "key": "fcm_token",
-                  "value": "your_fcm_token_here",
-                  "type": "text"
+                  "value": "cB40xGiqSLWwKW7NR5nnqU:APA91bEEXbaUWiPiAMEWzA3t2R_AEqQrr08idkI4xXkvTJEMWNZ5LCznkKnNSTsxJfRc4D2N9FOkZyXPPiB8aW0dRYngR9I9qLwIn780GKnbuCNb7M5UCWHEVW3iS6iHxEEeP",
+                  "type": "text",
+                  "description": "Firebase Cloud Messaging device token"
                 }
               ]
             },
@@ -2405,7 +2553,32 @@
               "host": [
                 "{{base_url}}store-fcm-token"
               ]
-            }
+            },
+            "description": "Store FCM token for push notifications"
+          }
+        },
+        {
+          "name": "Remove FCM Token",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}remove-fcm-token",
+              "host": [
+                "{{base_url}}remove-fcm-token"
+              ]
+            },
+            "description": "Remove FCM token (e.g., on logout)"
           }
         },
         {
@@ -2418,7 +2591,230 @@
               "host": [
                 "{{base_url}}get-notice-board"
               ]
-            }
+            },
+            "description": "Get notice board announcements"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Panel",
+      "item": [
+        {
+          "name": "Send Custom Notification",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Important Announcement",
+                  "type": "text",
+                  "description": "Notification title (required)"
+                },
+                {
+                  "key": "message",
+                  "value": "This is an important message for all users.",
+                  "type": "text",
+                  "description": "Notification message (required, max 500 chars)"
+                },
+                {
+                  "key": "target_audience",
+                  "value": "all",
+                  "type": "text",
+                  "description": "Options: all, user, teacher, specific"
+                },
+                {
+                  "key": "user_ids[]",
+                  "value": "1",
+                  "type": "text",
+                  "description": "Required if target_audience=specific (array of user IDs)",
+                  "disabled": true
+                },
+                {
+                  "key": "user_ids[]",
+                  "value": "2",
+                  "type": "text",
+                  "description": "Additional user ID",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}../admin/notifications/send",
+              "host": [
+                "{{base_url}}",
+                "..",
+                "admin",
+                "notifications"
+              ],
+              "path": [
+                "send"
+              ]
+            },
+            "description": "Send custom notification to users. Admin only endpoint.\n\n**Target Audience Options:**\n- `all`: Send to all active users\n- `user`: Send to students only\n- `teacher`: Send to teachers only\n- `specific`: Send to specific users (requires user_ids[])"
+          }
+        },
+        {
+          "name": "Get Notification Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}../admin/notifications/statistics",
+              "host": [
+                "{{base_url}}",
+                "..",
+                "admin",
+                "notifications"
+              ],
+              "path": [
+                "statistics"
+              ]
+            },
+            "description": "Get notification statistics for admin dashboard.\n\nReturns:\n- Total active users\n- Users with FCM tokens\n- Student/Teacher counts\n- Notifications sent today/week/month"
+          }
+        },
+        {
+          "name": "Get User List for Targeting",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}../admin/notifications/users?type=all",
+              "host": [
+                "{{base_url}}",
+                "..",
+                "admin",
+                "notifications"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "all",
+                  "description": "Filter: all, user, teacher"
+                }
+              ]
+            },
+            "description": "Get paginated list of users for targeted notifications.\n\nQuery Parameters:\n- `type`: Filter by user type (all, user, teacher)"
+          }
+        },
+        {
+          "name": "Create Notice (With Notification)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Exam Schedule Update",
+                  "type": "text",
+                  "description": "Notice title (required)"
+                },
+                {
+                  "key": "description",
+                  "value": "The upcoming BCS exam has been rescheduled to next week.",
+                  "type": "text",
+                  "description": "Notice description (required)"
+                },
+                {
+                  "key": "status",
+                  "value": "1",
+                  "type": "text",
+                  "description": "0=Inactive, 1=Active (required)"
+                },
+                {
+                  "key": "send_notification",
+                  "value": "true",
+                  "type": "text",
+                  "description": "Send push notification (optional, default: true)"
+                },
+                {
+                  "key": "target_audience",
+                  "value": "all",
+                  "type": "text",
+                  "description": "Options: all, user, teacher (optional, default: all)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}../admin/notice-board",
+              "host": [
+                "{{base_url}}",
+                "..",
+                "admin",
+                "notice-board"
+              ]
+            },
+            "description": "Create a notice board entry. If `send_notification=true` and `status=1`, push notifications will be sent to target audience.\n\n**New Fields:**\n- `send_notification`: Whether to send push notification\n- `target_audience`: Who to notify (all, user, teacher)"
+          }
+        },
+        {
+          "name": "Update Notice (With Notification)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Updated: Exam Schedule",
+                  "type": "text",
+                  "description": "Notice title (required)"
+                },
+                {
+                  "key": "description",
+                  "value": "The exam schedule has been updated again.",
+                  "type": "text",
+                  "description": "Notice description (required)"
+                },
+                {
+                  "key": "status",
+                  "value": "1",
+                  "type": "text",
+                  "description": "0=Inactive, 1=Active (required)"
+                },
+                {
+                  "key": "send_notification",
+                  "value": "true",
+                  "type": "text",
+                  "description": "Send push notification (optional, default: false)"
+                },
+                {
+                  "key": "target_audience",
+                  "value": "all",
+                  "type": "text",
+                  "description": "Options: all, user, teacher (optional, default: all)"
+                },
+                {
+                  "key": "_method",
+                  "value": "PUT",
+                  "type": "text",
+                  "description": "Laravel method spoofing"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}../admin/notice-board/1",
+              "host": [
+                "{{base_url}}",
+                "..",
+                "admin",
+                "notice-board"
+              ],
+              "path": [
+                "1"
+              ]
+            },
+            "description": "Update existing notice. Notifications are sent if:\n- `send_notification=true` AND\n- `status=1` AND\n- (Notice was inactive OR notification wasn't sent before)"
           }
         }
       ]
