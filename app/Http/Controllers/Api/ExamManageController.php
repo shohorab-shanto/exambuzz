@@ -29,67 +29,60 @@ class ExamManageController extends Controller
         $data['childcategory'] = $child = $request->childcategory;
         $is_live = false;
 
-        $exam = [];
+        $exams = [];
 
         if ($sub === 'Preliminary') {
-            $exam = Exam::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+            $exams = Exam::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('category', $category)
                 ->where('subcategory', $sub);
 
             if ($child) {
-                $exam = $exam->where('childcategory', $child);
+                $exams = $exams->where('childcategory', $child);
             }
 
-            $exam = $exam->with([
+            $exams = $exams->with([
                 'questions.questionOptions',
                 'questions.subject',
                 'questions.topic',
                 'userAnswer' => function ($q) {
                     return $q->where('user_id', Auth::id());
                 },
-            ])->first();
+            ])->get();
 
         } elseif ($sub === 'Written') {
-            $exam = Written::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+            $exams = Written::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('category', $category)
                 ->where('subcategory', $sub);
 
             if ($child) {
-                $exam = $exam->where('childcategory', $child);
+                $exams = $exams->where('childcategory', $child);
             }
 
-            $exam = $exam->with([
+            $exams = $exams->with([
                 'writtenQuestion',
                 'userAnswer' => function ($q) {
                     return $q->where('user_id', Auth::id());
                 },
-            ])->first();
+            ])->get();
 
         }
 
-        $data['exam'] = $exam;
-        $subjects = [];
-        $sources = [];
+        $data['exams'] = $exams;
 
-        if ($exam) {
-            $subjects = Subject::whereIn('id', explode(',', $exam->subject_id))->get();
-            $sources = TopicSource::whereIn('id', explode(',', $exam->topic_id))->get();
+        if ($exams && count($exams) > 0) {
+            // Attach subjects and sources to each exam
+            foreach ($exams as $exam) {
+                $exam['subjects'] = Subject::whereIn('id', explode(',', $exam->subject_id))->get();
+                $exam['sources'] = TopicSource::whereIn('id', explode(',', $exam->topic_id))->get();
+            }
 
             $is_live = true;
         }
 
-        $data['subjects'] = $subjects;
-        $data['sources'] = $sources;
         $data['is_live_exam'] = $is_live;
-
-        if (isset($exam) && $exam->userAnswer != null) {
-            if ($exam->userAnswer && $exam->userAnswer->deleted_at) {
-                return $this->successMessage('', $data);
-            }
-            return $this->errorMessage('আপনি ইতোমধ্যে এই পরীক্ষায় অংশগ্রহণ করেছেন');
-        }
+        $data['total_live_exams'] = count($exams);
 
         return $this->successMessage('', $data);
     }

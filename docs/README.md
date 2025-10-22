@@ -1,5 +1,42 @@
 # Exam App API Documentation
 
+## 🔴 BREAKING CHANGES - October 22, 2025
+
+### Multiple Live Exams Support
+
+**Endpoint**: `POST /api/exam/check-live-exam`
+
+The system now returns **ALL live exams** instead of just the first one when multiple exams are scheduled simultaneously in the same section.
+
+#### What Changed:
+| Before | After |
+|--------|-------|
+| `data.exam` (single object) | `data.exams` (array) |
+| N/A | `data.total_live_exams` (integer) |
+| Single exam returned | All concurrent exams returned |
+
+#### Migration Guide:
+```javascript
+// ❌ OLD CODE (Will break)
+if (response.data.is_live_exam && response.data.exam) {
+    showExam(response.data.exam);
+}
+
+// ✅ NEW CODE (Required)
+if (response.data.is_live_exam && response.data.exams.length > 0) {
+    if (response.data.exams.length === 1) {
+        showExam(response.data.exams[0]);
+    } else {
+        // Show selection UI for multiple exams
+        showExamSelectionList(response.data.exams);
+    }
+}
+```
+
+**📖 See**: `CHANGELOG_LIVE_EXAMS.md` for detailed documentation
+
+---
+
 ## Postman Collections
 
 This directory contains comprehensive Postman collections for the Exam App APIs.
@@ -49,7 +86,7 @@ This directory contains comprehensive Postman collections for the Exam App APIs.
    - Helps identify weak areas for targeted improvement
 
 4. **Updated Endpoints**
-   - `/api/exam/check-live-exam` - Now includes subject/topic in questions
+   - `/api/exam/check-live-exam` - **🔴 BREAKING CHANGE (Oct 22, 2025)** - Returns ALL live exams as array (`exams`) instead of single object (`exam`). Added `total_live_exams` field.
    - `/api/exam/archive-exam-question-details` - Questions with subject/topic info
    - `/api/answer/show-preliminary-answer` - Enhanced statistics + subject/topic breakdown ⭐
    - `/api/answer/preliminary-answer-script` - Questions with subject/topic

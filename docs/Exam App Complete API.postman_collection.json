@@ -269,7 +269,7 @@
 							"host": ["{{base_url}}exam"],
 							"path": ["check-live-exam"]
 						},
-						"description": "Check if there's a live exam. Returns exam with questions including subject and topic info."
+						"description": "Check for live exams in a section. **UPDATED 2025-10-22**: Now returns ALL live exams as an array instead of just one. Response includes:\n- `exams` (array) - All currently live exams\n- `total_live_exams` (integer) - Count of live exams\n- `is_live_exam` (boolean) - Whether any live exam exists\nEach exam includes questions with subject and topic info."
 					}
 				},
 				{
