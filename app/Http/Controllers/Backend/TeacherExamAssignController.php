@@ -265,4 +265,37 @@ class TeacherExamAssignController extends Controller
         return back()->withToastSuccess('Paper is recheck able now');
     }
 
+    public function reassignTeacherForRecheck(Request $request)
+    {
+        // Validate the request
+        if (!isset($request->paper_id) || empty($request->paper_id)) {
+            return back()->withToastError('No paper selected');
+        }
+
+        if ($request->new_teacher_id == null || empty($request->new_teacher_id)) {
+            return back()->withToastError('No teacher selected');
+        }
+
+        $answer = WrittenAnswer::find($request->paper_id);
+
+        if (!$answer) {
+            return back()->withToastError('Paper not found');
+        }
+
+        // Check if paper is already checked
+        if ($answer->is_checked != 1) {
+            return back()->withToastError('Only checked papers can be reassigned for recheck');
+        }
+
+        // Store the old teacher info for notification/logging if needed
+        $old_teacher_id = $answer->teacher_id;
+
+        // Reassign to new teacher and mark for recheck
+        $answer->teacher_id = $request->new_teacher_id;
+        $answer->is_checked = 2; // Mark as assigned for recheck
+        $answer->save();
+
+        return back()->withToastSuccess('Paper successfully reassigned to new teacher for recheck');
+    }
+
 }

@@ -1,5 +1,23 @@
 @extends('backend.layouts.master')
 @section('title', 'Assign paper to teacher')
+@section('css')
+<style>
+    .modal-backdrop {
+        z-index: 1040 !important;
+    }
+    .modal {
+        z-index: 1050 !important;
+        background: none !important;
+    }
+    .modal-dialog {
+        z-index: 1060 !important;
+    }
+    .modal-content {
+        z-index: 1070 !important;
+        position: relative;
+    }
+</style>
+@endsection
 @section('content')
     <div class="row">
         <div class="col-12">
@@ -131,15 +149,22 @@
                                                             Checked
                                                         </button>
 
-                                                        <a href="{{ route('teacher.written.recheckAssignTeacher', $item->id) }}"
+                                                        {{-- <a href="{{ route('teacher.written.recheckAssignTeacher', $item->id) }}"
                                                            onclick="return confirm('Are you sure want to recheck this paper?')"
-                                                           class="btn btn-warning btn-sm">Recheck Able</a>
+                                                           class="btn btn-warning btn-sm">Recheck Able</a> --}}
+
+                                                        <button type="button" class="btn btn-primary btn-sm" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#reassignModal{{ $item->id }}">
+                                                            Reassign Teacher
+                                                        </button>
                                                     </td>
                                                 @elseif ($item->teacher && $item->is_checked == 2)
                                                     <td>
                                                         <button type="button" class="btn btn-info btn-sm">Assigned For
                                                             Recheck
                                                         </button>
+                                                        <span class="badge bg-secondary">Teacher: {{ $item->teacher->name }}</span>
                                                     </td>
                                                 @endif
                                             </tr>
@@ -173,6 +198,54 @@
             </div>
         </div>
     </div>
+
+    <!-- Reassign Teacher Modals (Outside table for proper z-index) -->
+    @if (count($paper) > 0)
+        @foreach ($paper as $item)
+            @if ($item->teacher && $item->is_checked == 1)
+                <div class="modal fade" id="reassignModal{{ $item->id }}" tabindex="-1" 
+                     aria-labelledby="reassignModalLabel{{ $item->id }}" aria-hidden="true" 
+                     data-backdrop="static" data-keyboard="true" style="z-index: 1050;">
+                    <div class="modal-dialog modal-dialog-centered" style="z-index: 1060;">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="reassignModalLabel{{ $item->id }}">
+                                    Reassign Teacher for Recheck
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form action="{{ route('teacher.written.reassignTeacherForRecheck') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="paper_id" value="{{ $item->id }}">
+                                <div class="modal-body">
+                                    <div class="alert alert-info">
+                                        <strong>Student:</strong> {{ $item->user->registration_id }} - {{ $item->user->name }}<br>
+                                        <strong>Current Teacher:</strong> {{ $item->teacher->name }}<br>
+                                        <strong>Obtained Mark:</strong> {{ $item->obtained_mark }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Select New Teacher <span class="text-danger">*</span></label>
+                                        <select name="new_teacher_id" class="form-control" required>
+                                            <option value="">Select Teacher</option>
+                                            @foreach ($teacher as $s_item)
+                                                @if($s_item->id != $item->teacher_id)
+                                                    <option value="{{ $s_item->id }}">{{ $s_item->name }}</option>
+                                                @endif
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Reassign for Recheck</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endforeach
+    @endif
 @endsection
 @section('js')
     <script>
@@ -184,6 +257,28 @@
             $('.custom_name').click(function () {
                 var allChecked = $('.custom_name:checked').length === $('.custom_name').length;
                 $('.check_all').prop('checked', allChecked);
+            });
+
+            // Fix modal z-index issues - ensure modal appears above backdrop
+            $('[id^="reassignModal"]').on('show.bs.modal', function (e) {
+                var modal = $(this);
+                var backdrop = $('.modal-backdrop');
+                
+                // Ensure backdrop is behind modal
+                backdrop.css('z-index', '1040');
+                modal.css('z-index', '1050');
+                modal.find('.modal-dialog').css('z-index', '1060');
+                modal.find('.modal-content').css('z-index', '1070');
+                
+                // Move modal to body if it's not already there
+                if (!modal.parent().is('body')) {
+                    modal.appendTo('body');
+                }
+            });
+
+            // Clean up after modal closes
+            $('[id^="reassignModal"]').on('hidden.bs.modal', function (e) {
+                $('.modal-backdrop').remove();
             });
         });
     </script>

@@ -194,6 +194,7 @@ Route::middleware('auth:admin')->group(function () {
             Route::post('/store-assign-paper', 'storeAssignPaper')->name('storeAssignPaper');
             Route::get('/removed-assign-teacher/{id}', 'removedAssignTeacher')->name('removedAssignTeacher');
             Route::get('/recheck-assign-teacher/{id}', 'recheckAssignTeacher')->name('recheckAssignTeacher');
+            Route::post('/reassign-teacher-for-recheck', 'reassignTeacherForRecheck')->name('reassignTeacherForRecheck');
             Route::get('/written-meritlist/{id}', 'writtenMeritlist')->name('writtenMeritlist');
             Route::get('/all-student-list/{id}', 'all_student_list')->name('all_student_list');
 
