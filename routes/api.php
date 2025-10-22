@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AnswerController;
 use App\Http\Controllers\Api\ExamManageController;
+use App\Http\Controllers\Api\FirebaseAuthController;
 use App\Http\Controllers\Api\RevisionController;
 use App\Http\Controllers\Api\SocialLoginController;
 use App\Http\Controllers\Api\SubscribtionController;
@@ -36,13 +37,20 @@ use Illuminate\Support\Facades\Route;
 |
  */
 
+// Firebase Authentication (API Only - for Mobile Apps)
+Route::post('/firebase/google-login', [FirebaseAuthController::class, 'googleLogin']);
+Route::post('/firebase/facebook-login', [FirebaseAuthController::class, 'facebookLogin']);
+
+// Legacy OAuth routes (Web-based - Optional)
 Route::controller(GoogleController::class)->group(function () {
     Route::get('auth/google', 'redirectToGoogle')->name('auth.google');
     Route::get('auth/google/callback', 'handleGoogleCallback');
 });
 
+// Legacy Social Login (Direct API - Old method)
 Route::post('/login/facebook', [SocialLoginController::class, 'facebook_login']);
 Route::post('/login/google', [SocialLoginController::class, 'google_login']);
+
 Route::get('/get-notice-board', [NoticeBoardController::class, 'all_notice_board']);
 
 Route::controller(FacebookController::class)->group(function () {

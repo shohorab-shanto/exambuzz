@@ -1,0 +1,337 @@
+{
+  "info": {
+    "_postman_id": "firebase-auth-2025-10-22",
+    "name": "ExamBuzz - Firebase Authentication API",
+    "description": "Firebase Authentication for Mobile Apps\n\n\u2728 **SEND ONLY THE FIREBASE TOKEN** - Backend extracts everything else!\n\nNo need to send name, email, phone, or any other data.\nJust send the Firebase ID token and you're done.\n\n**Request:**\n```json\n{\n    \"firebase_token\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6...\"\n}\n```\n\n**Backend automatically extracts:**\n- Name\n- Email\n- Profile Photo\n- Firebase UID\n\n**Response:**\n- Bearer access token\n- Complete user object\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Firebase Authentication",
+      "item": [
+        {
+          "name": "Firebase Google Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firebase_token\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6IjY4ZGUxNmYwMzI5YTZhZjNjYmQ1MzYwOWI1YzBiNDRlMGQ4MzYxMTMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20veW91ci1wcm9qZWN0LWlkIiwiYXVkIjoieW91ci1wcm9qZWN0LWlkIiwiYXV0aF90aW1lIjoxNzI5NTg2NDAwLCJ1c2VyX2lkIjoiZmlyZWJhc2VfdWlkXzEyMzQ1IiwiaWF0IjoxNzI5NTg2NDAwLCJleHAiOjE3Mjk1OTAwMDAsImVtYWlsIjoiam9obkBleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7Imdvb2dsZS5jb20iOlsiMTIzNDU2Nzg5Il0sImVtYWlsIjpbImpvaG5AZXhhbXBsZS5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJnb29nbGUuY29tIn19.example_signature\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/firebase/google-login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "firebase",
+                "google-login"
+              ]
+            },
+            "description": "\ud83d\udd25 Firebase Google Login - SEND ONLY THE TOKEN!\n\n**What to send:**\n```json\n{\n    \"firebase_token\": \"YOUR_FIREBASE_ID_TOKEN_HERE\"\n}\n```\n\n**That's it!** No phone, no name, no email needed.\n\n**Backend automatically extracts from Firebase:**\n- \u2705 Name (displayName)\n- \u2705 Email\n- \u2705 Profile Photo (photoUrl)  \n- \u2705 Firebase UID\n\n**Response:**\n- Bearer access token for API authentication\n- Complete user object with all extracted data\n\n**Note:** Replace the firebase_token value with an actual token from your Firebase SDK.\n"
+          },
+          "response": [
+            {
+              "name": "Successful Login (Existing User)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"firebase_token\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6IjY4ZGUxNmYwMzI5...\",\n    \"phone\": \"01712345678\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/firebase/google-login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "firebase",
+                    "google-login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"status\": true,\n    \"message\": \"Login successful\",\n    \"token_type\": \"Bearer\",\n    \"access_token\": \"1|abcdefghijklmnopqrstuvwxyz123456789\",\n    \"user\": {\n        \"id\": 1,\n        \"name\": \"John Doe\",\n        \"email\": \"john@example.com\",\n        \"phone\": \"01712345678\",\n        \"firebase_uid\": \"firebase_uid_12345\",\n        \"registration_id\": \"2025000001\",\n        \"status\": 1,\n        \"email_verified_at\": \"2025-10-22T10:30:00.000000Z\",\n        \"created_at\": \"2025-10-22T10:30:00.000000Z\",\n        \"updated_at\": \"2025-10-22T10:30:00.000000Z\"\n    }\n}"
+            },
+            {
+              "name": "Successful Registration (New User)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"firebase_token\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6IjY4ZGUxNmYwMzI5...\",\n    \"phone\": \"01712345678\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/firebase/google-login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "firebase",
+                    "google-login"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"status\": true,\n    \"message\": \"Registration successful\",\n    \"token_type\": \"Bearer\",\n    \"access_token\": \"2|abcdefghijklmnopqrstuvwxyz987654321\",\n    \"user\": {\n        \"id\": 2,\n        \"name\": \"Jane Smith\",\n        \"email\": \"jane@example.com\",\n        \"phone\": \"01798765432\",\n        \"firebase_uid\": \"firebase_uid_67890\",\n        \"registration_id\": \"2025000002\",\n        \"status\": 1,\n        \"email_verified_at\": \"2025-10-22T11:00:00.000000Z\",\n        \"created_at\": \"2025-10-22T11:00:00.000000Z\",\n        \"updated_at\": \"2025-10-22T11:00:00.000000Z\"\n    }\n}"
+            },
+            {
+              "name": "Invalid Firebase Token",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"firebase_token\": \"invalid_token_123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/firebase/google-login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "firebase",
+                    "google-login"
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"status\": false,\n    \"message\": \"Invalid Firebase token\",\n    \"error\": \"Token verification failed\"\n}"
+            },
+            {
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"phone\": \"01712345678\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/firebase/google-login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "firebase",
+                    "google-login"
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"status\": false,\n    \"message\": \"Validation failed\",\n    \"errors\": {\n        \"firebase_token\": [\n            \"The firebase token field is required.\"\n        ]\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Firebase Facebook Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firebase_token\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6IjY4ZGUxNmYwMzI5YTZhZjNjYmQ1MzYwOWI1YzBiNDRlMGQ4MzYxMTMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20veW91ci1wcm9qZWN0LWlkIiwiYXVkIjoieW91ci1wcm9qZWN0LWlkIiwiYXV0aF90aW1lIjoxNzI5NTg2NDAwLCJ1c2VyX2lkIjoiZmlyZWJhc2VfdWlkXzEyMzQ1IiwiaWF0IjoxNzI5NTg2NDAwLCJleHAiOjE3Mjk1OTAwMDAsImVtYWlsIjoiam9obkBleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImZhY2Vib29rLmNvbSI6WyI5ODc2NTQzMjEiXSwiZW1haWwiOlsiam9obkBleGFtcGxlLmNvbSJdfSwic2lnbl9pbl9wcm92aWRlciI6ImZhY2Vib29rLmNvbSJ9fQ.example_signature\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/firebase/facebook-login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "firebase",
+                "facebook-login"
+              ]
+            },
+            "description": "\ud83d\udd25 Firebase Facebook Login - SEND ONLY THE TOKEN!\n\n**What to send:**\n```json\n{\n    \"firebase_token\": \"YOUR_FIREBASE_ID_TOKEN_HERE\"\n}\n```\n\nSame as Google login - just the token!\nBackend extracts all user information from Firebase.\n"
+          },
+          "response": [
+            {
+              "name": "Successful Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"firebase_token\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6IjY4ZGUxNmYwMzI5...\",\n    \"phone\": \"01712345678\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/firebase/facebook-login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "firebase",
+                    "facebook-login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"status\": true,\n    \"message\": \"Login successful\",\n    \"token_type\": \"Bearer\",\n    \"access_token\": \"3|abcdefghijklmnopqrstuvwxyz111222333\",\n    \"user\": {\n        \"id\": 3,\n        \"name\": \"Alice Johnson\",\n        \"email\": \"alice@example.com\",\n        \"phone\": \"01755555555\",\n        \"firebase_uid\": \"firebase_uid_facebook_123\",\n        \"registration_id\": \"2025000003\",\n        \"status\": 1,\n        \"email_verified_at\": \"2025-10-22T12:00:00.000000Z\",\n        \"created_at\": \"2025-10-22T12:00:00.000000Z\",\n        \"updated_at\": \"2025-10-22T12:00:00.000000Z\"\n    }\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Firebase-based authentication endpoints for mobile apps.\n\n**How it works:**\n1. Mobile app uses Firebase SDK to authenticate users (Google Sign-In or Facebook Login)\n2. Firebase SDK returns an ID token\n3. Mobile app sends the ID token to our API\n4. Our API verifies the token with Firebase\n5. API creates/logs in the user\n6. API returns a Bearer token for subsequent requests"
+    },
+    {
+      "name": "Protected Routes Example",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "profile"
+              ]
+            },
+            "description": "Example of using the Bearer token from Firebase authentication to access protected routes.\n\nAfter successful login, use the `access_token` in the Authorization header."
+          },
+          "response": []
+        }
+      ],
+      "description": "Examples of how to use the Bearer token from Firebase authentication"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://exambuzz.live",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
