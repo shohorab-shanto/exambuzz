@@ -124,41 +124,62 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware('auth:sanctum')->post('/v2/get-material', function (Request $request) {
 
-// Assuming $request is an instance of Illuminate\Http\Request
-
-    $materialFolders = \App\Models\MaterialFolder::where('type', $request->category)->with('materials');
+    $baseQuery = \App\Models\MaterialFolder::where('type', $request->category);
 
     if ($request->has('subject_id')) {
-        $materialFolders->whereHas('materials', function ($query) use ($request) {
+        $baseQuery->whereHas('materials', function ($query) use ($request) {
             $query->where('subject_id', 'LIKE', '%' . $request->subject_id . '%');
         });
     }
 
     if ($request->has('search')) {
-        $materialFolders->whereHas('materials', function ($query) use ($request) {
+        $baseQuery->whereHas('materials', function ($query) use ($request) {
             $query->where('name', 'LIKE', $request->search . '%');
         });
     }
 
-    $data = $materialFolders->latest()->paginate();
+    // Get ALL folders of this type (not just root folders)
+    $allFolders = $baseQuery->with('materials')->latest()->get();
 
-    $data->load(['materials.subjects', 'materials.sources']);
-
-    // This line is unnecessary since you're paginating the results and assigning the paginated results to $data.
-    // $data['material'] = $material;
-
-    foreach ($data as $folder) {
-        foreach ($folder->materials as $item) {
-            // Assuming $item->subject_id and $item->topic_id are comma-separated strings like '1,2,3'
-            $item->subjects = Subject::whereIn('id', explode(',', $item->subject_id))->get();
-            $item->sources = TopicSource::whereIn('id', explode(',', $item->topic_id))->get();
+    // Load and process materials for ALL folders
+    foreach ($allFolders as $folder) {
+        if ($folder->materials && $folder->materials->count() > 0) {
+            $folder->load(['materials.subjects', 'materials.sources']);
+            
+            foreach ($folder->materials as $item) {
+                if ($item->subject_id) {
+                    $item->subjects = Subject::whereIn('id', explode(',', $item->subject_id))->get();
+                }
+                if ($item->topic_id) {
+                    $item->sources = TopicSource::whereIn('id', explode(',', $item->topic_id))->get();
+                }
+            }
         }
     }
 
+    // Build hierarchical structure by creating a map and connecting parent-child relationships
+    $folderMap = $allFolders->keyBy('id');
+    $rootFolders = [];
+    
+    foreach ($allFolders as $folder) {
+        if ($folder->parent_id && isset($folderMap[$folder->parent_id])) {
+            // This is a child folder - add it to parent's children collection
+            $parent = $folderMap[$folder->parent_id];
+            if (!isset($parent->children)) {
+                $parent->children = collect([]);
+            }
+            $parent->children->push($folder);
+        } else {
+            // This is a root folder
+            $rootFolders[] = $folder;
+        }
+    }
+
+    $hierarchicalData = collect($rootFolders);
 
     return response()->json([
         'status' => true,
-        'data' => $data,
+        'data' => $hierarchicalData,
     ]);
 
 });
