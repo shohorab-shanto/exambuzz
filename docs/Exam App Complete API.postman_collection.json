@@ -516,6 +516,13 @@
                   "type": "text",
                   "description": "Optional - filter by package ID (NEW)"
                 }
+                ,
+                {
+                  "key": "topic",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional - filter by topic/source text (NEW)"
+                }
               ]
             },
             "url": {
@@ -527,7 +534,7 @@
                 "archive"
               ]
             },
-            "description": "Get archived (expired) exams with filtering options.\n\n**Filters Available:**\n- category: BCS, Bank, Primary, etc.\n- subcategory: Preliminary, Written\n- childcategory: Cadre, Non-Cadre, etc.\n- subject_id: Filter by subject\n- search: Search exam name\n- **package_id: Filter by package** (NEW)\n\n**New Feature:**\nStudents can now filter archived exams by the package they purchased. Pass `package_id` to see only exams from that specific package.\n\n**Use Case:**\nShow \"My Package Exams\" - filter archive by user's purchased package to show only exams they have access to."
+            "description": "Get archived (expired) exams with filtering options.\n\n**Filters Available:**\n- category: BCS, Bank, Primary, etc.\n- subcategory: Preliminary, Written\n- childcategory: Cadre, Non-Cadre, etc.\n- subject_id: Filter by subject\n- search: Search exam name\n- **package_id: Filter by package** (NEW)\n- **topic: Filter by topic or source text** (NEW)\n\n**New Feature:**\nStudents can now filter archived exams by the package they purchased. Pass `package_id` to see only exams from that specific package. You can also filter by `topic` string, which matches TopicSource.topic or TopicSource.source and returns exams whose topic_id CSV contains those IDs.\n\n**Use Case:**\nShow \"My Package Exams\" and topic-specific archives."
           }
         },
         {
@@ -779,6 +786,13 @@
                   "type": "text",
                   "description": "Optional"
                 }
+                ,
+                {
+                  "key": "topic",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional - filter by topic/source text (NEW)"
+                }
               ]
             },
             "url": {
@@ -837,6 +851,13 @@
                   "value": "",
                   "type": "text",
                   "description": "Optional"
+                }
+                ,
+                {
+                  "key": "note",
+                  "value": "Response now returns hierarchical folders (root with nested children).",
+                  "type": "text",
+                  "description": "Note"
                 }
               ]
             },

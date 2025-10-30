@@ -202,6 +202,24 @@ class ExamManageController extends Controller
                 $examQuery = $examQuery->where('package_id', $request->package_id);
             }
 
+            // Topic-based filter (by TopicSource topic/source text)
+            if ($request->topic) {
+                $topicIds = TopicSource::where('topic', 'LIKE', '%' . $request->topic . '%')
+                    ->orWhere('source', 'LIKE', '%' . $request->topic . '%')
+                    ->pluck('id');
+
+                if ($topicIds->count() > 0) {
+                    $examQuery = $examQuery->where(function ($q) use ($topicIds) {
+                        foreach ($topicIds as $tid) {
+                            $q->orWhereRaw('FIND_IN_SET(?, topic_id)', [$tid]);
+                        }
+                    });
+                } else {
+                    // No matching topics, return empty set
+                    $examQuery = $examQuery->whereRaw('1 = 0');
+                }
+            }
+
             if ($search) {
                 $examQuery = $examQuery->where('name', 'LIKE', '%' . $search . '%');
             }
@@ -251,6 +269,24 @@ class ExamManageController extends Controller
                 $exam = $exam->where('package_id', $request->package_id);
             }
 
+            // Topic-based filter (by TopicSource topic/source text)
+            if ($request->topic) {
+                $topicIds = TopicSource::where('topic', 'LIKE', '%' . $request->topic . '%')
+                    ->orWhere('source', 'LIKE', '%' . $request->topic . '%')
+                    ->pluck('id');
+
+                if ($topicIds->count() > 0) {
+                    $exam = $exam->where(function ($q) use ($topicIds) {
+                        foreach ($topicIds as $tid) {
+                            $q->orWhereRaw('FIND_IN_SET(?, topic_id)', [$tid]);
+                        }
+                    });
+                } else {
+                    // No matching topics, return empty set
+                    $exam = $exam->whereRaw('1 = 0');
+                }
+            }
+
             $exam = $exam->orderByDesc('id')
                 ->with([
                     'writtenQuestion',
@@ -279,6 +315,23 @@ class ExamManageController extends Controller
 
                 if ($request->package_id) {
                     $exam = $exam->where('package_id', $request->package_id);
+                }
+
+                // Topic-based filter (by TopicSource topic/source text) in search branch
+                if ($request->topic) {
+                    $topicIds = TopicSource::where('topic', 'LIKE', '%' . $request->topic . '%')
+                        ->orWhere('source', 'LIKE', '%' . $request->topic . '%')
+                        ->pluck('id');
+
+                    if ($topicIds->count() > 0) {
+                        $exam = $exam->where(function ($q) use ($topicIds) {
+                            foreach ($topicIds as $tid) {
+                                $q->orWhereRaw('FIND_IN_SET(?, topic_id)', [$tid]);
+                            }
+                        });
+                    } else {
+                        $exam = $exam->whereRaw('1 = 0');
+                    }
                 }
 
                 $exam = $exam->orderByDesc('id')
@@ -509,6 +562,26 @@ class ExamManageController extends Controller
                 });
             }
 
+            // Topic-based filter by TopicSource text against exam.topic_id CSV
+            if ($request->topic) {
+                $topicIds = TopicSource::where('topic', 'LIKE', '%' . $request->topic . '%')
+                    ->orWhere('source', 'LIKE', '%' . $request->topic . '%')
+                    ->pluck('id');
+
+                if ($topicIds->count() > 0) {
+                    $answer = $answer->whereHas('exam', function ($q) use ($topicIds) {
+                        $q->where(function ($qq) use ($topicIds) {
+                            foreach ($topicIds as $tid) {
+                                $qq->orWhereRaw('FIND_IN_SET(?, topic_id)', [$tid]);
+                            }
+                        });
+                    });
+                } else {
+                    // Force empty result when no matching topic IDs
+                    $answer = $answer->whereRaw('1 = 0');
+                }
+            }
+
             $answer = $answer->latest()->paginate();
 
             foreach ($answer as $item) {
@@ -576,6 +649,25 @@ class ExamManageController extends Controller
                 $answer = $answer->whereHas('written', function ($q) use ($request) {
                     return $q->where('subject_id', 'LIKE', $request->subject_id . '%');
                 });
+            }
+
+            // Topic-based filter by TopicSource text against written.topic_id CSV
+            if ($request->topic) {
+                $topicIds = TopicSource::where('topic', 'LIKE', '%' . $request->topic . '%')
+                    ->orWhere('source', 'LIKE', '%' . $request->topic . '%')
+                    ->pluck('id');
+
+                if ($topicIds->count() > 0) {
+                    $answer = $answer->whereHas('written', function ($q) use ($topicIds) {
+                        $q->where(function ($qq) use ($topicIds) {
+                            foreach ($topicIds as $tid) {
+                                $qq->orWhereRaw('FIND_IN_SET(?, topic_id)', [$tid]);
+                            }
+                        });
+                    });
+                } else {
+                    $answer = $answer->whereRaw('1 = 0');
+                }
             }
 
             $answer = $answer->latest()->paginate();

@@ -214,15 +214,41 @@ Route::middleware('auth:sanctum')->get('/get-present-live-exam', function (Reque
 
     $data = [];
 
-    $exam = Exam::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+    // Live Preliminary exams with full details
+    $exam = Exam::where('status', 1)
+        ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
         ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-        ->select(['id', 'category', 'subcategory', 'childcategory'])
+        ->with([
+            'questions.questionOptions',
+            'questions.subject',
+            'questions.topic',
+            'userAnswer' => function ($q) {
+                return $q->where('user_id', Auth::id());
+            },
+        ])
         ->get();
 
-    $written = Written::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+    foreach ($exam as $item) {
+        $item['subjects'] = Subject::whereIn('id', explode(',', $item->subject_id))->get();
+        $item['sources'] = TopicSource::whereIn('id', explode(',', $item->topic_id))->get();
+    }
+
+    // Live Written exams with full details
+    $written = Written::where('status', 1)
+        ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
         ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-        ->select(['id', 'category', 'subcategory', 'childcategory'])
+        ->with([
+            'writtenQuestion',
+            'userAnswer' => function ($q) {
+                return $q->where('user_id', Auth::id());
+            },
+        ])
         ->get();
+
+    foreach ($written as $item) {
+        $item['subjects'] = Subject::whereIn('id', explode(',', $item->subject_id))->get();
+        $item['sources'] = TopicSource::whereIn('id', explode(',', $item->topic_id))->get();
+    }
 
     $data['exam'] = $exam;
     $data['written'] = $written;
