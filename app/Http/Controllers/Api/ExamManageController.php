@@ -543,11 +543,6 @@ class ExamManageController extends Controller
                 })
                 ->whereHas('exam', function ($q) use ($sub) {
                     return $q->where('subcategory', $sub);
-                })
-                ->whereHas('exam', function ($q) use ($search) {
-                    if ($search){
-                        return $q->where('name', 'LIKE', '%'. $search . '%');
-                    }
                 });
 
             if ($child) {
@@ -590,35 +585,42 @@ class ExamManageController extends Controller
             }
 
             if ($request->search) {
+                $needle = $request->search;
                 $new_data = [];
-                $flag = false;
 
                 foreach ($answer as $e_item) {
-                    $flag = false;
+                    $matched = false;
 
-                    foreach ($e_item->subjects as $sub) {
-
-                        if (str_starts_with($sub->name, $request->search)) {
-                            $flag = true;
-                            break;
-                        }
-
+                    // match by exam name
+                    if (isset($e_item->exam) && $e_item->exam && stripos($e_item->exam->name ?? '', $needle) !== false) {
+                        $matched = true;
                     }
 
-                    foreach ($e_item->sources as $src) {
-
-                        if (str_starts_with($src->topic, $request->search) || str_starts_with($src->source, $request->search)) {
-                            $flag = true;
-                            break;
+                    // match by subject name
+                    if (!$matched) {
+                        foreach ($e_item->subjects as $subj) {
+                            if ($subj->name !== null && stripos($subj->name, $needle) !== false) {
+                                $matched = true;
+                                break;
+                            }
                         }
-
                     }
 
-                    if ($flag == true) {
+                    // match by topic/source
+                    if (!$matched) {
+                        foreach ($e_item->sources as $src) {
+                            $topicMatches = $src->topic !== null && stripos($src->topic, $needle) !== false;
+                            $sourceMatches = $src->source !== null && stripos($src->source, $needle) !== false;
+                            if ($topicMatches || $sourceMatches) {
+                                $matched = true;
+                                break;
+                            }
+                        }
+                    }
 
+                    if ($matched) {
                         $new_data[] = $e_item;
                     }
-
                 }
 
                 $answer = $new_data;
@@ -630,11 +632,7 @@ class ExamManageController extends Controller
                 ->whereHas('written', function ($q) use ($category) {
                     return $q->where('category', $category);
                 })
-//                ->whereHas('exam', function ($q) use ($search) {
-//                    if ($search){
-//                        return $q->where('name', 'LIKE', '%'. $search . '%');
-//                    }
-//                })
+                
                 ->whereHas('written', function ($q) use ($sub) {
                     return $q->where('subcategory', $sub);
                 });
@@ -678,35 +676,42 @@ class ExamManageController extends Controller
             }
 
             if ($request->search) {
+                $needle = $request->search;
                 $new_data = [];
-                $flag = false;
 
                 foreach ($answer as $e_item) {
-                    $flag = false;
+                    $matched = false;
 
-                    foreach ($e_item->subjects as $sub) {
-
-                        if (str_starts_with($sub->name, $request->search)) {
-                            $flag = true;
-                            break;
-                        }
-
+                    // match by written name
+                    if (isset($e_item->written) && $e_item->written && stripos($e_item->written->name ?? '', $needle) !== false) {
+                        $matched = true;
                     }
 
-                    foreach ($e_item->sources as $src) {
-
-                        if (str_starts_with($src->topic, $request->search) || str_starts_with($src->source, $request->search)) {
-                            $flag = true;
-                            break;
+                    // match by subject name
+                    if (!$matched) {
+                        foreach ($e_item->subjects as $subj) {
+                            if ($subj->name !== null && stripos($subj->name, $needle) !== false) {
+                                $matched = true;
+                                break;
+                            }
                         }
-
                     }
 
-                    if ($flag == true) {
+                    // match by topic/source
+                    if (!$matched) {
+                        foreach ($e_item->sources as $src) {
+                            $topicMatches = $src->topic !== null && stripos($src->topic, $needle) !== false;
+                            $sourceMatches = $src->source !== null && stripos($src->source, $needle) !== false;
+                            if ($topicMatches || $sourceMatches) {
+                                $matched = true;
+                                break;
+                            }
+                        }
+                    }
 
+                    if ($matched) {
                         $new_data[] = $e_item;
                     }
-
                 }
 
                 $answer = $new_data;
