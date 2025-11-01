@@ -42,6 +42,38 @@ OTP_VERIFICATION_ENABLED=false
 
 ---
 
+## Firebase Authentication
+
+Add these variables to your `.env` file:
+
+```env
+# Firebase Web API Key (for Google/Facebook login)
+# Get this from Firebase Console > Project Settings > General > Web API Key
+FIREBASE_WEB_API_KEY=AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz1234567
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_ENABLED=true
+```
+
+### How to Get Firebase Web API Key
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select your project
+3. Click ⚙️ **Settings** → **Project Settings**
+4. Go to **General** tab
+5. Scroll to **Your apps** section
+6. Copy the **Web API Key** value
+7. Paste it into your `.env` file as `FIREBASE_WEB_API_KEY`
+
+### Enable Google Sign-In
+
+1. Firebase Console → **Authentication** → **Sign-in method**
+2. Click **Google** → Enable
+3. Select support email → Save
+
+**Note:** No JSON file needed! Just the Web API Key.
+
+---
+
 ## Notification System
 
 Add these variables to your `.env` file:

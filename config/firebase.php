@@ -6,18 +6,16 @@ return [
     | Firebase Configuration
     |--------------------------------------------------------------------------
     |
-    | Configure Firebase service account credentials for authentication
+    | Configure Firebase Web API Key for authentication
+    | Get this from Firebase Console > Project Settings > General > Web API Key
     |
     */
 
-    // Path to Firebase service account JSON file
-    'credentials' => env('FIREBASE_CREDENTIALS', storage_path('app/firebase/firebase-credentials.json')),
+    // Firebase Web API Key (simpler approach - no JSON file needed)
+    'web_api_key' => env('FIREBASE_WEB_API_KEY', ''),
 
     // Firebase project ID
     'project_id' => env('FIREBASE_PROJECT_ID', ''),
-
-    // Firebase database URL (optional)
-    'database_url' => env('FIREBASE_DATABASE_URL', ''),
 
     // Enable/disable Firebase authentication
     'enabled' => env('FIREBASE_ENABLED', true),

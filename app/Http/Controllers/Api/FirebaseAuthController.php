@@ -8,26 +8,40 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Auth as FirebaseAuth;
+use Illuminate\Support\Facades\Http;
 use Exception;
 
 class FirebaseAuthController extends Controller
 {
-    protected $auth;
+    protected $webApiKey;
 
     public function __construct()
     {
+        $this->webApiKey = config('firebase.web_api_key');
+    }
+
+    /**
+     * Verify Firebase ID Token using REST API
+     */
+    private function verifyFirebaseToken($idToken)
+    {
         try {
-            // Initialize Firebase
-            $credentialsPath = config('firebase.credentials');
-            
-            if (file_exists($credentialsPath)) {
-                $factory = (new Factory)->withServiceAccount($credentialsPath);
-                $this->auth = $factory->createAuth();
+            $response = Http::post("https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={$this->webApiKey}", [
+                'idToken' => $idToken
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                if (isset($data['users']) && count($data['users']) > 0) {
+                    return $data['users'][0];
+                }
             }
+
+            return null;
         } catch (Exception $e) {
-            \Log::error('Firebase initialization error: ' . $e->getMessage());
+            \Log::error('Firebase token verification error: ' . $e->getMessage());
+            return null;
         }
     }
 
@@ -51,22 +65,30 @@ class FirebaseAuthController extends Controller
         }
 
         try {
-            // Verify Firebase ID token
-            if (!$this->auth) {
+            // Check if Firebase Web API Key is configured
+            if (empty($this->webApiKey)) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Firebase not configured. Please contact administrator.'
+                    'message' => 'Firebase not configured. Please add FIREBASE_WEB_API_KEY to .env file.'
                 ], 500);
             }
 
-            $verifiedIdToken = $this->auth->verifyIdToken($request->firebase_token);
-            $firebaseUid = $verifiedIdToken->claims()->get('sub');
-            $firebaseUser = $this->auth->getUser($firebaseUid);
+            // Verify Firebase ID token using REST API
+            $firebaseUser = $this->verifyFirebaseToken($request->firebase_token);
 
-            // Extract user data from Firebase token
-            $email = $firebaseUser->email ?? null;
-            $name = $firebaseUser->displayName ?? 'User';
-            $photoUrl = $firebaseUser->photoUrl ?? null;
+            if (!$firebaseUser) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Invalid Firebase token',
+                ], 401);
+            }
+
+            // Extract user data from Firebase response
+            $firebaseUid = $firebaseUser['localId'] ?? null;
+            $email = $firebaseUser['email'] ?? null;
+            $name = $firebaseUser['displayName'] ?? 'User';
+            $photoUrl = $firebaseUser['photoUrl'] ?? null;
+            $emailVerified = $firebaseUser['emailVerified'] ?? false;
             
             // Phone is completely optional - can be null
             $phone = $request->phone ?? null;
@@ -107,6 +129,7 @@ class FirebaseAuthController extends Controller
                     'name' => $name,
                     'phone' => $phone,
                     'photo' => $photoUrl,
+                    'email_verified' => $emailVerified,
                 ]);
 
                 // Generate access token
@@ -121,12 +144,6 @@ class FirebaseAuthController extends Controller
                 ], 201);
             }
 
-        } catch (\Kreait\Firebase\Exception\Auth\FailedToVerifyToken $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Invalid Firebase token',
-                'error' => $e->getMessage()
-            ], 401);
         } catch (Exception $e) {
             \Log::error('Firebase Google Login Error: ' . $e->getMessage());
             return response()->json([
@@ -157,22 +174,30 @@ class FirebaseAuthController extends Controller
         }
 
         try {
-            // Verify Firebase ID token
-            if (!$this->auth) {
+            // Check if Firebase Web API Key is configured
+            if (empty($this->webApiKey)) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Firebase not configured. Please contact administrator.'
+                    'message' => 'Firebase not configured. Please add FIREBASE_WEB_API_KEY to .env file.'
                 ], 500);
             }
 
-            $verifiedIdToken = $this->auth->verifyIdToken($request->firebase_token);
-            $firebaseUid = $verifiedIdToken->claims()->get('sub');
-            $firebaseUser = $this->auth->getUser($firebaseUid);
+            // Verify Firebase ID token using REST API
+            $firebaseUser = $this->verifyFirebaseToken($request->firebase_token);
 
-            // Extract user data from Firebase
-            $email = $firebaseUser->email ?? null;
-            $name = $firebaseUser->displayName ?? 'User';
-            $photoUrl = $firebaseUser->photoUrl ?? null;
+            if (!$firebaseUser) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Invalid Firebase token',
+                ], 401);
+            }
+
+            // Extract user data from Firebase response
+            $firebaseUid = $firebaseUser['localId'] ?? null;
+            $email = $firebaseUser['email'] ?? null;
+            $name = $firebaseUser['displayName'] ?? 'User';
+            $photoUrl = $firebaseUser['photoUrl'] ?? null;
+            $emailVerified = $firebaseUser['emailVerified'] ?? false;
             
             // Phone is optional
             $phone = $request->phone ?? null;
@@ -213,6 +238,7 @@ class FirebaseAuthController extends Controller
                     'name' => $name,
                     'phone' => $phone,
                     'photo' => $photoUrl,
+                    'email_verified' => $emailVerified,
                 ]);
 
                 // Generate access token
@@ -227,12 +253,6 @@ class FirebaseAuthController extends Controller
                 ], 201);
             }
 
-        } catch (\Kreait\Firebase\Exception\Auth\FailedToVerifyToken $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Invalid Firebase token',
-                'error' => $e->getMessage()
-            ], 401);
         } catch (Exception $e) {
             \Log::error('Firebase Facebook Login Error: ' . $e->getMessage());
             return response()->json([
