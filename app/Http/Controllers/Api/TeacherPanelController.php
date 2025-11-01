@@ -50,6 +50,8 @@ class TeacherPanelController extends Controller {
                 },
                 'answer.writtenAnswerQuestion.writtenAnswerQuestion',
                 'answer.writtenAnswerQuestion.writtenAnswerQuestionScript',
+                'answer.review.user',
+                'answer.review.conversations',
             ])
             ->withCount([
                 'answer as total_examinee' => function ($q) {
@@ -57,6 +59,9 @@ class TeacherPanelController extends Controller {
                 },
                 'answer as total_examined' => function ($q) {
                     return $q->where('teacher_id', Auth::id())->where('is_checked', 1);
+                },
+                'answer as total_reviews' => function ($q) {
+                    return $q->where('teacher_id', Auth::id())->whereHas('review');
                 },
             ]);
 
@@ -70,6 +75,59 @@ class TeacherPanelController extends Controller {
         foreach ($exam as $item) {
             $item['subjects'] = Subject::whereIn('id', explode(',', $item->subject_id))->get();
             $item['sources']  = TopicSource::whereIn('id', explode(',', $item->topic_id))->get();
+            
+            // Calculate teacher review stats for this exam
+            $reviewData = [];
+            $ratings = [];
+            $reviewsDetail = [];
+            
+            // Get the answer relationship (not the answer column)
+            $answers = $item->getRelation('answer');
+            if ($answers && is_iterable($answers)) {
+                foreach ($answers as $answer) {
+                    if ($answer->review) {
+                        $ratings[] = $answer->review->rating;
+                        
+                        // Collect detailed review info including student comment and conversations
+                        $reviewsDetail[] = [
+                            'review_id' => $answer->review->id,
+                            'written_answer_id' => $answer->review->written_answer_id,
+                            'student' => $answer->review->user ? [
+                                'id' => $answer->review->user->id,
+                                'name' => $answer->review->user->name,
+                                'email' => $answer->review->user->email,
+                            ] : null,
+                            'rating' => $answer->review->rating,
+                            'comment' => $answer->review->comment,
+                            'teacher_reply' => $answer->review->teacher_reply,
+                            'replied_at' => $answer->review->replied_at,
+                            'created_at' => $answer->review->created_at,
+                            'conversations' => $answer->review->conversations ? $answer->review->conversations->map(function($conv) {
+                                return [
+                                    'id' => $conv->id,
+                                    'message' => $conv->message,
+                                    'sender_type' => $conv->sender_type,
+                                    'sender_id' => $conv->sender_id,
+                                    'created_at' => $conv->created_at,
+                                ];
+                            }) : [],
+                        ];
+                    }
+                }
+            }
+            
+            $reviewData['total_reviews'] = count($ratings);
+            $reviewData['average_rating'] = count($ratings) > 0 ? round(array_sum($ratings) / count($ratings), 2) : 0;
+            $reviewData['rating_breakdown'] = [
+                '5_star' => count(array_filter($ratings, fn($r) => $r == 5)),
+                '4_star' => count(array_filter($ratings, fn($r) => $r == 4)),
+                '3_star' => count(array_filter($ratings, fn($r) => $r == 3)),
+                '2_star' => count(array_filter($ratings, fn($r) => $r == 2)),
+                '1_star' => count(array_filter($ratings, fn($r) => $r == 1)),
+            ];
+            $reviewData['reviews_detail'] = $reviewsDetail;
+            
+            $item['teacher_review_summary'] = $reviewData;
         }
 
         if ($request->search) {
