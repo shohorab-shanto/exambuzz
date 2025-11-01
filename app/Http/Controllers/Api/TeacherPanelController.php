@@ -11,6 +11,8 @@ use App\Models\Written;
 use App\Models\WrittenAnswer;
 use App\Models\WrittenAnswerQuestion;
 use App\Models\WrittenAnswerQuestionScript;
+use App\Models\WrittenAnswerReview;
+use App\Models\WrittenAnswerReviewConversation;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -306,6 +308,202 @@ class TeacherPanelController extends Controller {
         $data['wallet'] = TeacherWallet::where('user_id', Auth::id())->first();
 
         return $this->successMessage('', $data);
+    }
+
+    /**
+     * Get all reviews for the authenticated teacher
+     */
+    public function getTeacherReviews(Request $request) {
+        $reviews = WrittenAnswerReview::where('teacher_id', Auth::id())
+            ->with(['user', 'writtenAnswer.written', 'conversations'])
+            ->latest();
+
+        // Filter by rating if provided
+        if ($request->has('rating') && $request->rating) {
+            $reviews->where('rating', $request->rating);
+        }
+
+        // Filter by search (student name, comment)
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $reviews->where(function($q) use ($search) {
+                $q->where('comment', 'LIKE', '%' . $search . '%')
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('name', 'LIKE', '%' . $search . '%');
+                  });
+            });
+        }
+
+        $reviews = $reviews->paginate(20);
+
+        // Format response
+        $formattedReviews = $reviews->map(function($review) {
+            return [
+                'review_id' => $review->id,
+                'written_answer_id' => $review->written_answer_id,
+                'exam' => $review->writtenAnswer && $review->writtenAnswer->written ? [
+                    'id' => $review->writtenAnswer->written->id,
+                    'name' => $review->writtenAnswer->written->name,
+                    'category' => $review->writtenAnswer->written->category,
+                ] : null,
+                'student' => $review->user ? [
+                    'id' => $review->user->id,
+                    'name' => $review->user->name,
+                    'email' => $review->user->email,
+                ] : null,
+                'rating' => $review->rating,
+                'comment' => $review->comment,
+                'teacher_reply' => $review->teacher_reply,
+                'replied_at' => $review->replied_at,
+                'created_at' => $review->created_at,
+                'total_conversations' => $review->conversations ? $review->conversations->count() : 0,
+            ];
+        });
+
+        return $this->successMessage('', [
+            'reviews' => $formattedReviews,
+            'pagination' => [
+                'current_page' => $reviews->currentPage(),
+                'last_page' => $reviews->lastPage(),
+                'per_page' => $reviews->perPage(),
+                'total' => $reviews->total(),
+            ]
+        ]);
+    }
+
+    /**
+     * Get detailed review with conversations
+     */
+    public function getReviewDetail($review_id) {
+        $review = WrittenAnswerReview::where('id', $review_id)
+            ->where('teacher_id', Auth::id())
+            ->with(['user', 'writtenAnswer.written', 'conversations'])
+            ->first();
+
+        if (!$review) {
+            return $this->errorMessage('Review not found');
+        }
+
+        $data = [
+            'review_id' => $review->id,
+            'written_answer_id' => $review->written_answer_id,
+            'exam' => $review->writtenAnswer && $review->writtenAnswer->written ? [
+                'id' => $review->writtenAnswer->written->id,
+                'name' => $review->writtenAnswer->written->name,
+                'category' => $review->writtenAnswer->written->category,
+                'subcategory' => $review->writtenAnswer->written->subcategory,
+            ] : null,
+            'student' => $review->user ? [
+                'id' => $review->user->id,
+                'name' => $review->user->name,
+                'email' => $review->user->email,
+            ] : null,
+            'rating' => $review->rating,
+            'comment' => $review->comment,
+            'teacher_reply' => $review->teacher_reply,
+            'replied_at' => $review->replied_at,
+            'created_at' => $review->created_at,
+            'conversations' => $review->conversations->map(function($conv) {
+                return [
+                    'id' => $conv->id,
+                    'message' => $conv->message,
+                    'sender_type' => $conv->sender_type,
+                    'sender_id' => $conv->sender_id,
+                    'created_at' => $conv->created_at,
+                ];
+            }),
+        ];
+
+        return $this->successMessage('', $data);
+    }
+
+    /**
+     * Reply to a review or update existing reply
+     */
+    public function replyToReview(Request $request) {
+        $request->validate([
+            'review_id' => 'required|exists:written_answer_reviews,id',
+            'reply' => 'required|string|max:1000',
+        ]);
+
+        $review = WrittenAnswerReview::where('id', $request->review_id)
+            ->where('teacher_id', Auth::id())
+            ->first();
+
+        if (!$review) {
+            return $this->errorMessage('Review not found or unauthorized');
+        }
+
+        $review->update([
+            'teacher_reply' => $request->reply,
+            'replied_at' => now(),
+        ]);
+
+        // Add to conversation
+        WrittenAnswerReviewConversation::create([
+            'review_id' => $review->id,
+            'sender_type' => 'teacher',
+            'sender_id' => Auth::id(),
+            'message' => $request->reply,
+        ]);
+
+        return $this->successMessage('Reply added successfully', [
+            'review' => $review->fresh(['user', 'conversations'])
+        ]);
+    }
+
+    /**
+     * Update teacher's reply
+     */
+    public function updateReviewReply(Request $request, $review_id) {
+        $request->validate([
+            'reply' => 'required|string|max:1000',
+        ]);
+
+        $review = WrittenAnswerReview::where('id', $review_id)
+            ->where('teacher_id', Auth::id())
+            ->first();
+
+        if (!$review) {
+            return $this->errorMessage('Review not found or unauthorized');
+        }
+
+        if (!$review->teacher_reply) {
+            return $this->errorMessage('No reply exists to update');
+        }
+
+        $review->update([
+            'teacher_reply' => $request->reply,
+            'replied_at' => now(),
+        ]);
+
+        return $this->successMessage('Reply updated successfully', [
+            'review' => $review->fresh(['user', 'conversations'])
+        ]);
+    }
+
+    /**
+     * Delete teacher's reply
+     */
+    public function deleteReviewReply($review_id) {
+        $review = WrittenAnswerReview::where('id', $review_id)
+            ->where('teacher_id', Auth::id())
+            ->first();
+
+        if (!$review) {
+            return $this->errorMessage('Review not found or unauthorized');
+        }
+
+        if (!$review->teacher_reply) {
+            return $this->errorMessage('No reply exists to delete');
+        }
+
+        $review->update([
+            'teacher_reply' => null,
+            'replied_at' => null,
+        ]);
+
+        return $this->successMessage('Reply deleted successfully');
     }
 
 }

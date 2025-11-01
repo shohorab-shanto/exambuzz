@@ -3020,6 +3020,187 @@
           }
         },
         {
+          "name": "Get Teacher Reviews",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}teacher/reviews?rating=&search=",
+              "host": [
+                "{{base_url}}teacher"
+              ],
+              "path": [
+                "reviews"
+              ],
+              "query": [
+                {
+                  "key": "rating",
+                  "value": "",
+                  "description": "Optional - Filter by rating (1-5)"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Optional - Search by student name or comment"
+                }
+              ]
+            },
+            "description": "Get all reviews for the authenticated teacher with pagination. Can filter by rating and search."
+          }
+        },
+        {
+          "name": "Get Review Detail",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}teacher/review/1",
+              "host": [
+                "{{base_url}}teacher"
+              ],
+              "path": [
+                "review",
+                "1"
+              ]
+            },
+            "description": "Get detailed review with full conversation thread. Replace '1' with actual review_id."
+          }
+        },
+        {
+          "name": "Reply to Review",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "review_id",
+                  "value": "1",
+                  "type": "text",
+                  "description": "Required - Review ID"
+                },
+                {
+                  "key": "reply",
+                  "value": "Thank you for your feedback!",
+                  "type": "text",
+                  "description": "Required - Reply message (max 1000 chars)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}teacher/review/reply",
+              "host": [
+                "{{base_url}}teacher"
+              ],
+              "path": [
+                "review",
+                "reply"
+              ]
+            },
+            "description": "Add or update reply to a student review. Also adds the reply to conversation thread automatically."
+          }
+        },
+        {
+          "name": "Update Review Reply",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "reply",
+                  "value": "Updated reply text here",
+                  "type": "text",
+                  "description": "Required - Updated reply message (max 1000 chars)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}teacher/review/reply/1",
+              "host": [
+                "{{base_url}}teacher"
+              ],
+              "path": [
+                "review",
+                "reply",
+                "1"
+              ]
+            },
+            "description": "Update existing teacher reply. Replace '1' with actual review_id."
+          }
+        },
+        {
+          "name": "Delete Review Reply",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}teacher/review/reply/1",
+              "host": [
+                "{{base_url}}teacher"
+              ],
+              "path": [
+                "review",
+                "reply",
+                "1"
+              ]
+            },
+            "description": "Delete teacher's reply from a review. Replace '1' with actual review_id."
+          }
+        },
+        {
           "name": "Get Top 3 Students (Written)",
           "request": {
             "method": "GET",

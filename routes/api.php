@@ -325,6 +325,13 @@ Route::middleware('auth:sanctum')->controller(TeacherPanelController::class)->pr
     Route::post('/withdrawal-request', 'withdrawalRequest');
 
     Route::post('/dashboard', 'dashboard');
+
+    // Teacher Reviews & Conversations
+    Route::get('/reviews', 'getTeacherReviews');
+    Route::get('/review/{review_id}', 'getReviewDetail');
+    Route::post('/review/reply', 'replyToReview');
+    Route::put('/review/reply/{review_id}', 'updateReviewReply');
+    Route::delete('/review/reply/{review_id}', 'deleteReviewReply');
 });
 
 Route::middleware('auth:sanctum')->group(function () {
