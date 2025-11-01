@@ -101,8 +101,6 @@ class TeacherPanelController extends Controller {
                             ] : null,
                             'rating' => $answer->review->rating,
                             'comment' => $answer->review->comment,
-                            'teacher_reply' => $answer->review->teacher_reply,
-                            'replied_at' => $answer->review->replied_at,
                             'created_at' => $answer->review->created_at,
                             'conversations' => $answer->review->conversations ? $answer->review->conversations->map(function($conv) {
                                 return [
@@ -357,8 +355,6 @@ class TeacherPanelController extends Controller {
                 ] : null,
                 'rating' => $review->rating,
                 'comment' => $review->comment,
-                'teacher_reply' => $review->teacher_reply,
-                'replied_at' => $review->replied_at,
                 'created_at' => $review->created_at,
                 'total_conversations' => $review->conversations ? $review->conversations->count() : 0,
             ];
@@ -404,8 +400,6 @@ class TeacherPanelController extends Controller {
             ] : null,
             'rating' => $review->rating,
             'comment' => $review->comment,
-            'teacher_reply' => $review->teacher_reply,
-            'replied_at' => $review->replied_at,
             'created_at' => $review->created_at,
             'conversations' => $review->conversations->map(function($conv) {
                 return [
