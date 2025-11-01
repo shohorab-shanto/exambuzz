@@ -53,7 +53,7 @@ class TeacherPanelController extends Controller {
                 'answer.writtenAnswerQuestion.writtenAnswerQuestion',
                 'answer.writtenAnswerQuestion.writtenAnswerQuestionScript',
                 'answer.review.user',
-                'answer.review.conversations',
+                'answer.review.conversations.user',
             ])
             ->withCount([
                 'answer as total_examinee' => function ($q) {
@@ -108,8 +108,12 @@ class TeacherPanelController extends Controller {
                                 return [
                                     'id' => $conv->id,
                                     'message' => $conv->message,
-                                    'sender_type' => $conv->sender_type,
-                                    'sender_id' => $conv->sender_id,
+                                    'user_type' => $conv->user_type,
+                                    'user_id' => $conv->user_id,
+                                    'user' => $conv->user ? [
+                                        'id' => $conv->user->id,
+                                        'name' => $conv->user->name,
+                                    ] : null,
                                     'created_at' => $conv->created_at,
                                 ];
                             }) : [],
@@ -315,7 +319,7 @@ class TeacherPanelController extends Controller {
      */
     public function getTeacherReviews(Request $request) {
         $reviews = WrittenAnswerReview::where('teacher_id', Auth::id())
-            ->with(['user', 'writtenAnswer.written', 'conversations'])
+            ->with(['user', 'writtenAnswer.written', 'conversations.user'])
             ->latest();
 
         // Filter by rating if provided
@@ -377,7 +381,7 @@ class TeacherPanelController extends Controller {
     public function getReviewDetail($review_id) {
         $review = WrittenAnswerReview::where('id', $review_id)
             ->where('teacher_id', Auth::id())
-            ->with(['user', 'writtenAnswer.written', 'conversations'])
+            ->with(['user', 'writtenAnswer.written', 'conversations.user'])
             ->first();
 
         if (!$review) {
@@ -407,8 +411,12 @@ class TeacherPanelController extends Controller {
                 return [
                     'id' => $conv->id,
                     'message' => $conv->message,
-                    'sender_type' => $conv->sender_type,
-                    'sender_id' => $conv->sender_id,
+                    'user_type' => $conv->user_type,
+                    'user_id' => $conv->user_id,
+                    'user' => $conv->user ? [
+                        'id' => $conv->user->id,
+                        'name' => $conv->user->name,
+                    ] : null,
                     'created_at' => $conv->created_at,
                 ];
             }),
@@ -442,8 +450,8 @@ class TeacherPanelController extends Controller {
         // Add to conversation
         WrittenAnswerReviewConversation::create([
             'review_id' => $review->id,
-            'sender_type' => 'teacher',
-            'sender_id' => Auth::id(),
+            'user_type' => 'teacher',
+            'user_id' => Auth::id(),
             'message' => $request->reply,
         ]);
 
