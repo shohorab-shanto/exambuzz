@@ -39,27 +39,48 @@ class UserAuthController extends Controller
                 $registration_number = 1;
             }
 
-            $otp = rand(111111, 999999);
-            $user = User::create([
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'email' => $request->email,
-                'password' => bcrypt($request->password),
-                'registration_id' => date("Y") . $register_number,
-                'register_number' => $registration_number,
-                'status' => 0,
-                'otp' => $otp,
-            ]);
+            $otpEnabled = config('app.otp_verification_enabled', false);
 
-            DB::table('forgot_password_otps')->insert([
-                'phone' => $user->phone,
-                'otp' => $user->otp,
-            ]);
+            if ($otpEnabled) {
+                // OTP Verification ENABLED - require OTP
+                $otp = rand(111111, 999999);
+                $user = User::create([
+                    'name' => $request->name,
+                    'phone' => $request->phone,
+                    'email' => $request->email,
+                    'password' => bcrypt($request->password),
+                    'registration_id' => date("Y") . $register_number,
+                    'register_number' => $registration_number,
+                    'status' => 0,
+                    'otp' => $otp,
+                ]);
 
-            sendSMS($user->phone, $user->otp);
-            DB::commit();
+                DB::table('forgot_password_otps')->insert([
+                    'phone' => $user->phone,
+                    'otp' => $user->otp,
+                ]);
 
-            return $this->successMessage('Your account created');
+                sendSMS($user->phone, $user->otp);
+                DB::commit();
+
+                return $this->successMessage('Your account created. Please verify your phone with OTP.');
+            } else {
+                // OTP Verification DISABLED - auto-verify user
+                $user = User::create([
+                    'name' => $request->name,
+                    'phone' => $request->phone,
+                    'email' => $request->email,
+                    'password' => bcrypt($request->password),
+                    'registration_id' => date("Y") . $register_number,
+                    'register_number' => $registration_number,
+                    'status' => 1,
+                    'email_verified_at' => now(),
+                ]);
+
+                DB::commit();
+
+                return $this->successMessage('Your account created successfully. You can login now.');
+            }
 
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -73,6 +94,12 @@ class UserAuthController extends Controller
     {
 
         try {
+            $otpEnabled = config('app.otp_verification_enabled', false);
+
+            if (!$otpEnabled) {
+                return $this->errorMessage('OTP verification is currently disabled. Users are auto-verified upon registration.');
+            }
+
             DB::beginTransaction();
             $validator = Validator::make($request->all(), [
                 'phone' => 'required',
@@ -114,6 +141,11 @@ class UserAuthController extends Controller
 
     public function resendOtp(Request $request)
     {
+        $otpEnabled = config('app.otp_verification_enabled', false);
+
+        if (!$otpEnabled) {
+            return $this->errorMessage('OTP verification is currently disabled. Users are auto-verified upon registration.');
+        }
 
         $validator = Validator::make($request->all(), [
             'phone' => 'required',
@@ -154,14 +186,19 @@ class UserAuthController extends Controller
                 return $this->validationMessage($validator->errors());
             }
 
-            if (!filter_var($request->email_or_phone, FILTER_VALIDATE_EMAIL)) {
-                $unverified = User::where('phone', $request->email_or_phone)->whereNull('email_verified_at')->first();
+            $otpEnabled = config('app.otp_verification_enabled', false);
 
-                if ($unverified) {
-                    return $this->errorMessage('Unverified account', [
-                        'is_verified' => false,
-                        'user' => $unverified,
-                    ]);
+            if (!filter_var($request->email_or_phone, FILTER_VALIDATE_EMAIL)) {
+                // Only check verification status if OTP is enabled
+                if ($otpEnabled) {
+                    $unverified = User::where('phone', $request->email_or_phone)->whereNull('email_verified_at')->first();
+
+                    if ($unverified) {
+                        return $this->errorMessage('Unverified account', [
+                            'is_verified' => false,
+                            'user' => $unverified,
+                        ]);
+                    }
                 }
 
                 if (!Auth::attempt([
@@ -187,13 +224,16 @@ class UserAuthController extends Controller
                 ]);
 
             } else {
-                $unverified = User::where('email', $request->email_or_phone)->whereNull('email_verified_at')->first();
+                // Only check verification status if OTP is enabled
+                if ($otpEnabled) {
+                    $unverified = User::where('email', $request->email_or_phone)->whereNull('email_verified_at')->first();
 
-                if ($unverified) {
-                    return $this->errorMessage('Unverified account', [
-                        'is_verified' => false,
-                        'user' => $unverified,
-                    ]);
+                    if ($unverified) {
+                        return $this->errorMessage('Unverified account', [
+                            'is_verified' => false,
+                            'user' => $unverified,
+                        ]);
+                    }
                 }
 
                 $find_user = User::where('email', $request->email_or_phone)->first();

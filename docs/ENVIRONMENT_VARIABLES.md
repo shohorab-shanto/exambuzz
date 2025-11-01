@@ -1,5 +1,47 @@
 # Required Environment Variables
 
+## OTP Verification System
+
+Controls whether OTP (One-Time Password) verification is required for user registration.
+
+Add this variable to your `.env` file:
+
+```env
+# OTP Verification (disabled by default)
+# Set to true to enable SMS OTP verification for user registration
+# Set to false to auto-verify users upon registration (no SMS required)
+OTP_VERIFICATION_ENABLED=false
+```
+
+### Behavior
+
+**When ENABLED (true):**
+- Users must verify their phone number with OTP after registration
+- User status = 0 (inactive) until verified
+- SMS with 6-digit OTP is sent to user's phone
+- User must call `/auth/verify-otp` endpoint to activate account
+- Cannot login until verified
+
+**When DISABLED (false) - DEFAULT:**
+- Users are automatically verified upon registration
+- User status = 1 (active) immediately
+- No SMS is sent
+- Can login immediately after registration
+- Bypass OTP verification process
+
+### Affected Endpoints
+
+- `POST /auth/register` - Auto-verifies when disabled
+- `POST /auth/verify-otp` - Returns error when disabled
+- `POST /auth/resend-otp` - Returns error when disabled
+- `POST /auth/login` - Skips verification check when disabled
+
+### Security Note
+
+⚠️ **Password Reset OTP:** Forgot password and reset password functionality ALWAYS uses OTP regardless of this setting for security reasons.
+
+---
+
 ## Notification System
 
 Add these variables to your `.env` file:

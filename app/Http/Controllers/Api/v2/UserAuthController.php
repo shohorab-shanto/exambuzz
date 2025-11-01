@@ -107,6 +107,12 @@ class UserAuthController extends Controller
     {
 
         try {
+            $otpEnabled = config('app.otp_verification_enabled', false);
+
+            if (!$otpEnabled) {
+                return $this->errorMessage('OTP verification is currently disabled. Users are auto-verified upon registration.');
+            }
+
             DB::beginTransaction();
             $validator = Validator::make($request->all(), [
                 'phone' => 'required',

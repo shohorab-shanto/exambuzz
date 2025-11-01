@@ -74,6 +74,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | OTP Verification Configuration
+    |--------------------------------------------------------------------------
+    |
+    | This option controls whether OTP verification is required for user
+    | registration. When disabled, users will be auto-verified and can
+    | login immediately after registration without SMS OTP verification.
+    | Set OTP_VERIFICATION_ENABLED=true in .env to enable.
+    |
+     */
+
+    'otp_verification_enabled' => env('OTP_VERIFICATION_ENABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |
