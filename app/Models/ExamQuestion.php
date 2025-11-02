@@ -20,4 +20,15 @@ class ExamQuestion extends Model {
     public function topic() {
         return $this->belongsTo(TopicSource::class, 'topic_id');
     }
+
+    public function isFavorite() {
+        return $this->hasOne(Favorite::class, 'question_id', 'id')
+            ->where('user_id', auth()->id())
+            ->where('category', 'revision');
+    }
+
+    public function isRead() {
+        return $this->hasOne(ExamQuestionRead::class, 'exam_question_id', 'id')
+            ->where('user_id', auth()->id());
+    }
 }

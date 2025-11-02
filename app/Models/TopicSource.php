@@ -12,4 +12,8 @@ class TopicSource extends Model {
     public function subject() {
         return $this->belongsTo(Subject::class);
     }
+
+    public function questions() {
+        return $this->hasMany(ExamQuestion::class, 'topic_id');
+    }
 }
