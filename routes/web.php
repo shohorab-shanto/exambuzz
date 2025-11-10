@@ -236,6 +236,15 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('/active-package', 'active_package')->name('active_package');
         Route::post('/save-active-package', 'save_active_package')->name('save_active_package');
     });
+
+    // Class Routine Management
+    Route::controller(\App\Http\Controllers\Backend\ClassRoutineController::class)->prefix('/class-routine')->name('class-routine.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create-edit/{type}', 'createOrEdit')->name('create-edit');
+        Route::post('/store', 'store')->name('store');
+        Route::delete('/delete/{type}', 'destroy')->name('destroy');
+        Route::post('/toggle-status/{type}', 'toggleStatus')->name('toggle-status');
+    });
 });
 
 Route::get('/privacy-policy', function () {

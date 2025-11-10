@@ -333,6 +333,15 @@
             </a>
         </li>
 
+        <li class="mm-active">
+            <a href="{{ route('class-routine.index') }}" aria-expanded="false">
+                <div class="icon_menu">
+                    <img src="{{ asset('backend/img/menu-icon/2.svg') }}" alt>
+                </div>
+                <span>Class Routine</span>
+            </a>
+        </li>
+
         <li class>
             <a class="has-arrow" href="#" aria-expanded="false">
                 <div class="icon_menu">

@@ -390,5 +390,11 @@ Route::get('/category', function () {
     ];
 });
 
+// Class Routine API Routes
+Route::controller(\App\Http\Controllers\Api\ClassRoutineController::class)->prefix('class-routines')->group(function () {
+    Route::get('/', 'index'); // Get all routines
+    Route::get('/{type}', 'getByType'); // Get by type (preliminary/written)
+});
+
 // add apiv2.php routes here
 require_once __DIR__ . '/apiv2.php';
