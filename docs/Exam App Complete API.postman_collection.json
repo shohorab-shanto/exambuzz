@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "complete-api-collection-2025",
     "name": "Exam App - Complete API Collection 2025",
-    "description": "Complete API collection with subject and topic support for questions\n\n## Updates:\n- **NEW:** bKash Payment Gateway Integration\n  - Create Payment for Package Purchase\n  - Payment Status Check\n  - Transaction Search\n  - Auto-callback Handling\n\n## Payment Flow:\n1. Call 'bKash Create Payment' with package_id, user_id, amount\n2. Open returned bkashURL in WebView/Browser\n3. User completes payment (Test: Wallet 01770618567, OTP 123456, PIN 12345)\n4. bKash redirects to callback\n5. Package activated automatically\n\n## Environment Variables Required:\n- SANDBOX=true (for testing)\n- BKASH_USERNAME\n- BKASH_PASSWORD\n- BKASH_APP_KEY\n- BKASH_APP_SECRET\n\nSee docs/BKASH_PAYMENT_INTEGRATION.md for detailed documentation.",
+    "description": "Complete API collection with subject and topic support for questions\n\n## Latest Updates:\n\n### ⭐ NEW: Class Routine API (Nov 10, 2025)\n- Get All Class Routines (Preliminary & Written)\n- Get Preliminary Routine\n- Get Written Routine\n- No authentication required\n- Full PDF URLs for download/viewing\n\n### ⭐ bKash Payment Gateway Integration\n- Create Payment for Package Purchase\n- Payment Status Check\n- Transaction Search\n- Auto-callback Handling\n\n## Class Routine Usage:\n```\nGET /api/class-routines              # Get all routines\nGET /api/class-routines/preliminary  # Get preliminary only\nGET /api/class-routines/written      # Get written only\n```\n\n## Payment Flow:\n1. Call 'bKash Create Payment' with package_id, user_id, amount\n2. Open returned bkashURL in WebView/Browser\n3. User completes payment (Test: Wallet 01770618567, OTP 123456, PIN 12345)\n4. bKash redirects to callback\n5. Package activated automatically\n\n## Environment Variables Required:\n- SANDBOX=true (for testing)\n- BKASH_USERNAME\n- BKASH_PASSWORD\n- BKASH_APP_KEY\n- BKASH_APP_SECRET\n\nSee docs/BKASH_PAYMENT_INTEGRATION.md and docs/CLASS_ROUTINE_FEATURE.md for detailed documentation.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -2472,6 +2472,209 @@
               "header": [],
               "cookie": [],
               "body": "{\n    \"status\": false,\n    \"message\": \"Payment failed or cancelled\",\n    \"data\": {\n        \"status\": \"failure\",\n        \"paymentID\": \"TR0011abc123\"\n    }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Class Routine",
+      "item": [
+        {
+          "name": "Get All Class Routines",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}class-routines",
+              "host": [
+                "{{base_url}}class-routines"
+              ]
+            },
+            "description": "**Get All Class Routines**\n\nRetrieve all active class routines (both Preliminary and Written exam routines).\n\n**Authentication:** Not required\n\n**Returns:**\n- Array of active routines\n- Preliminary exam routine (if available)\n- Written exam routine (if available)\n- Full PDF URLs for download/viewing\n\n**Use Cases:**\n- Display all available class routines in mobile app\n- Show both exam types in a single API call\n- Get PDF links for viewing/downloading\n\n**Response Fields:**\n- id: Routine ID\n- type: \"preliminary\" or \"written\"\n- title: Optional routine title\n- pdf_file: Full URL to PDF file\n- status: Active status (only active routines returned)\n- created_at: Creation timestamp\n- updated_at: Last update timestamp"
+          },
+          "response": [
+            {
+              "name": "Success - Both Routines Available",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}class-routines",
+                  "host": [
+                    "{{base_url}}class-routines"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"status\": true,\n    \"message\": \"Class routines retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"type\": \"preliminary\",\n            \"title\": \"BCS 47th Preliminary Exam Routine\",\n            \"pdf_file\": \"http://localhost/storage/class_routines/class_routine_preliminary_1699520000.pdf\",\n            \"status\": true,\n            \"created_at\": \"2025-11-10T15:30:00.000000Z\",\n            \"updated_at\": \"2025-11-10T15:30:00.000000Z\"\n        },\n        {\n            \"id\": 2,\n            \"type\": \"written\",\n            \"title\": \"BCS 46th Written Exam Routine\",\n            \"pdf_file\": \"http://localhost/storage/class_routines/class_routine_written_1699520100.pdf\",\n            \"status\": true,\n            \"created_at\": \"2025-11-10T15:35:00.000000Z\",\n            \"updated_at\": \"2025-11-10T15:35:00.000000Z\"\n        }\n    ]\n}"
+            },
+            {
+              "name": "Success - Empty (No Routines)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}class-routines",
+                  "host": [
+                    "{{base_url}}class-routines"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"status\": true,\n    \"message\": \"Class routines retrieved successfully\",\n    \"data\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Preliminary Routine",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}class-routines/preliminary",
+              "host": [
+                "{{base_url}}class-routines"
+              ],
+              "path": [
+                "preliminary"
+              ]
+            },
+            "description": "**Get Preliminary Exam Routine**\n\nRetrieve the active preliminary exam routine.\n\n**Authentication:** Not required\n\n**Path Parameter:**\n- type: \"preliminary\" (fixed)\n\n**Returns:**\n- Single routine object\n- Full PDF URL for viewing/downloading\n\n**Use Cases:**\n- Display preliminary exam routine only\n- Direct link to preliminary routine PDF\n- Show routine title and upload date\n\n**Response:**\n- 200 OK: Routine found\n- 404 Not Found: No preliminary routine uploaded or inactive"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}class-routines/preliminary",
+                  "host": [
+                    "{{base_url}}class-routines"
+                  ],
+                  "path": [
+                    "preliminary"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"status\": true,\n    \"message\": \"Preliminary exam routine retrieved successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"type\": \"preliminary\",\n        \"title\": \"BCS 47th Preliminary Exam Routine\",\n        \"pdf_file\": \"http://localhost/storage/class_routines/class_routine_preliminary_1699520000.pdf\",\n        \"status\": true,\n        \"created_at\": \"2025-11-10T15:30:00.000000Z\",\n        \"updated_at\": \"2025-11-10T15:30:00.000000Z\"\n    }\n}"
+            },
+            {
+              "name": "Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}class-routines/preliminary",
+                  "host": [
+                    "{{base_url}}class-routines"
+                  ],
+                  "path": [
+                    "preliminary"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"status\": false,\n    \"message\": \"Preliminary exam routine not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Written Routine",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}class-routines/written",
+              "host": [
+                "{{base_url}}class-routines"
+              ],
+              "path": [
+                "written"
+              ]
+            },
+            "description": "**Get Written Exam Routine**\n\nRetrieve the active written exam routine.\n\n**Authentication:** Not required\n\n**Path Parameter:**\n- type: \"written\" (fixed)\n\n**Returns:**\n- Single routine object\n- Full PDF URL for viewing/downloading\n\n**Use Cases:**\n- Display written exam routine only\n- Direct link to written routine PDF\n- Show routine title and upload date\n\n**Response:**\n- 200 OK: Routine found\n- 404 Not Found: No written routine uploaded or inactive"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}class-routines/written",
+                  "host": [
+                    "{{base_url}}class-routines"
+                  ],
+                  "path": [
+                    "written"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"status\": true,\n    \"message\": \"Written exam routine retrieved successfully\",\n    \"data\": {\n        \"id\": 2,\n        \"type\": \"written\",\n        \"title\": \"BCS 46th Written Exam Routine\",\n        \"pdf_file\": \"http://localhost/storage/class_routines/class_routine_written_1699520100.pdf\",\n        \"status\": true,\n        \"created_at\": \"2025-11-10T15:35:00.000000Z\",\n        \"updated_at\": \"2025-11-10T15:35:00.000000Z\"\n    }\n}"
+            },
+            {
+              "name": "Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}class-routines/written",
+                  "host": [
+                    "{{base_url}}class-routines"
+                  ],
+                  "path": [
+                    "written"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"status\": false,\n    \"message\": \"Written exam routine not found\"\n}"
             }
           ]
         }

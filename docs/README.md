@@ -193,7 +193,12 @@ This directory contains comprehensive Postman collections for the Exam App APIs.
 - **bKash Search Transaction** ⭐ NEW
 - **bKash Callback (Auto)** ⭐ NEW
 
-### 6. Revision Module (6 endpoints)
+### 6. Class Routine (3 endpoints) ⭐ NEW
+- **Get All Class Routines** ⭐ NEW
+- **Get Preliminary Routine** ⭐ NEW
+- **Get Written Routine** ⭐ NEW
+
+### 7. Revision Module (6 endpoints)
 - Get Revision Subject List
 - Get Revision Topic List
 - Get Revision Question List
@@ -201,11 +206,11 @@ This directory contains comprehensive Postman collections for the Exam App APIs.
 - Toggle Revision Question Favorite
 - Mark Revision Question as Read
 
-### 7. Material & Study Resources (2 endpoints)
+### 8. Material & Study Resources (2 endpoints)
 - Get Materials
 - Get Materials V2
 
-### 8. Notifications (4 endpoints)
+### 9. Notifications (4 endpoints)
 - Get Notifications
 - Mark Notification as Seen
 - Store FCM Token
