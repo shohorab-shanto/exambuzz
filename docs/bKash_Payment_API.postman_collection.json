@@ -1,0 +1,433 @@
+{
+	"info": {
+		"_postman_id": "bkash-payment-api-v1",
+		"name": "bKash Payment API - Mobile App",
+		"description": "Complete bKash Payment Gateway Integration for Mobile App Package Purchase\n\n## Features:\n- Create payment for package purchase\n- Automatic callback handling\n- Payment status checking\n- Transaction search\n\n## Setup:\n1. Set base_url variable to your API URL (e.g., http://localhost/api)\n2. Configure bKash credentials in .env file\n3. Set SANDBOX=true for testing\n\n## Payment Flow:\n1. App calls `/api/bkash/create-payment` with package_id, user_id, amount\n2. API returns bkashURL\n3. App opens bkashURL in webview/browser\n4. User completes payment on bKash\n5. bKash redirects to callback URL\n6. API creates package_history record\n7. Returns success response\n\n## Required Environment Variables:\n- SANDBOX=true\n- BKASH_USERNAME\n- BKASH_PASSWORD\n- BKASH_APP_KEY\n- BKASH_APP_SECRET",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Create Payment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.data && jsonData.data.paymentID) {",
+							"        pm.environment.set('payment_id', jsonData.data.paymentID);",
+							"        pm.environment.set('merchant_invoice_number', jsonData.data.merchantInvoiceNumber);",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "package_id",
+							"value": "1",
+							"description": "ID of the package to purchase",
+							"type": "text"
+						},
+						{
+							"key": "user_id",
+							"value": "1",
+							"description": "ID of the user making the purchase",
+							"type": "text"
+						},
+						{
+							"key": "amount",
+							"value": "1000",
+							"description": "Amount to pay (must be >= 1)",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}bkash/create-payment",
+					"host": [
+						"{{base_url}}bkash"
+					],
+					"path": [
+						"create-payment"
+					]
+				},
+				"description": "Creates a bKash payment for package purchase.\n\n**Request:**\n- package_id (required): ID of package to purchase\n- user_id (required): ID of user\n- amount (required): Payment amount (min 1 BDT)\n\n**Response:**\n- bkashURL: URL to redirect user for payment\n- paymentID: Payment ID for tracking\n- merchantInvoiceNumber: Unique invoice number\n- callbackURL: Callback URL for payment completion\n\n**Next Step:**\nOpen bkashURL in webview/browser for user to complete payment"
+			},
+			"response": [
+				{
+					"name": "Success Response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "package_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "user_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "amount",
+									"value": "1000",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}bkash/create-payment",
+							"host": [
+								"{{base_url}}bkash"
+							],
+							"path": [
+								"create-payment"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [],
+					"cookie": [],
+					"body": "{\n    \"status\": true,\n    \"message\": \"Payment created successfully\",\n    \"data\": {\n        \"bkashURL\": \"https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout?paymentID=TR0011abc123\",\n        \"paymentID\": \"TR0011abc123\",\n        \"merchantInvoiceNumber\": \"PKG_1_1_1699520000\",\n        \"amount\": \"1000\",\n        \"callbackURL\": \"http://localhost/api/bkash/callback\"\n    }\n}"
+				},
+				{
+					"name": "Validation Error",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "package_id",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}bkash/create-payment",
+							"host": [
+								"{{base_url}}bkash"
+							],
+							"path": [
+								"create-payment"
+							]
+						}
+					},
+					"status": "Unprocessable Entity",
+					"code": 422,
+					"_postman_previewlanguage": "json",
+					"header": [],
+					"cookie": [],
+					"body": "{\n    \"status\": false,\n    \"message\": \"Validation failed\",\n    \"errors\": {\n        \"package_id\": [\n            \"The package id field is required.\"\n        ],\n        \"user_id\": [\n            \"The user id field is required.\"\n        ],\n        \"amount\": [\n            \"The amount field is required.\"\n        ]\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "2. Payment Callback (GET)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}bkash/callback?paymentID={{payment_id}}&status=success",
+					"host": [
+						"{{base_url}}bkash"
+					],
+					"path": [
+						"callback"
+					],
+					"query": [
+						{
+							"key": "paymentID",
+							"value": "{{payment_id}}",
+							"description": "Payment ID from create payment"
+						},
+						{
+							"key": "status",
+							"value": "success",
+							"description": "Payment status (success/failure)"
+						}
+					]
+				},
+				"description": "**This endpoint is called automatically by bKash after payment completion.**\n\nYou don't need to call this manually. bKash will redirect to this URL after payment.\n\n**What happens:**\n1. User completes payment on bKash\n2. bKash calls this callback URL\n3. API executes payment and verifies\n4. Creates package_history record\n5. Returns success/failure response\n\n**Response:**\n- transactionID: bKash transaction ID\n- paymentID: Payment ID\n- package details\n- package_history_id: Record ID in database"
+			},
+			"response": [
+				{
+					"name": "Success Response",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}bkash/callback?paymentID=TR0011abc123&status=success",
+							"host": [
+								"{{base_url}}bkash"
+							],
+							"path": [
+								"callback"
+							],
+							"query": [
+								{
+									"key": "paymentID",
+									"value": "TR0011abc123"
+								},
+								{
+									"key": "status",
+									"value": "success"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [],
+					"cookie": [],
+					"body": "{\n    \"status\": true,\n    \"message\": \"Payment completed successfully\",\n    \"data\": {\n        \"transactionID\": \"8HK7D15MNO\",\n        \"paymentID\": \"TR0011abc123\",\n        \"amount\": \"1000\",\n        \"currency\": \"BDT\",\n        \"customerMsisdn\": \"01700000000\",\n        \"package\": {\n            \"id\": 1,\n            \"name\": \"BCS Premium Package\",\n            \"validity\": 365\n        },\n        \"package_history_id\": 15\n    }\n}"
+				},
+				{
+					"name": "Payment Failed",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}bkash/callback?paymentID=TR0011abc123&status=failure",
+							"host": [
+								"{{base_url}}bkash"
+							],
+							"path": [
+								"callback"
+							],
+							"query": [
+								{
+									"key": "paymentID",
+									"value": "TR0011abc123"
+								},
+								{
+									"key": "status",
+									"value": "failure"
+								}
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [],
+					"cookie": [],
+					"body": "{\n    \"status\": false,\n    \"message\": \"Payment failed or cancelled\",\n    \"data\": {\n        \"status\": \"failure\",\n        \"paymentID\": \"TR0011abc123\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "3. Check Payment Status",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "paymentID",
+							"value": "{{payment_id}}",
+							"description": "Payment ID from create payment",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}bkash/check-payment-status",
+					"host": [
+						"{{base_url}}bkash"
+					],
+					"path": [
+						"check-payment-status"
+					]
+				},
+				"description": "Check the current status of a payment.\n\n**Use Case:**\n- Check if payment is completed\n- Verify payment details\n- Debug payment issues\n\n**Request:**\n- paymentID (required): Payment ID from create payment\n\n**Response:**\n- Complete payment status from bKash\n- Transaction details\n- Payment amount and status"
+			},
+			"response": [
+				{
+					"name": "Success Response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "paymentID",
+									"value": "TR0011abc123",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}bkash/check-payment-status",
+							"host": [
+								"{{base_url}}bkash"
+							],
+							"path": [
+								"check-payment-status"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [],
+					"cookie": [],
+					"body": "{\n    \"status\": true,\n    \"message\": \"Payment status retrieved\",\n    \"data\": {\n        \"paymentID\": \"TR0011abc123\",\n        \"trxID\": \"8HK7D15MNO\",\n        \"transactionStatus\": \"Completed\",\n        \"amount\": \"1000\",\n        \"currency\": \"BDT\",\n        \"intent\": \"sale\",\n        \"merchantInvoiceNumber\": \"PKG_1_1_1699520000\",\n        \"paymentExecuteTime\": \"2025-11-10T10:30:00Z\",\n        \"statusCode\": \"0000\",\n        \"statusMessage\": \"Successful\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "4. Search Transaction",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "trxID",
+							"value": "8HK7D15MNO",
+							"description": "bKash transaction ID (TrxID)",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}bkash/search-transaction",
+					"host": [
+						"{{base_url}}bkash"
+					],
+					"path": [
+						"search-transaction"
+					]
+				},
+				"description": "Search for a transaction using bKash transaction ID (TrxID).\n\n**Use Case:**\n- Find payment details by TrxID\n- Verify transaction authenticity\n- Customer support queries\n\n**Request:**\n- trxID (required): bKash transaction ID\n\n**Response:**\n- Complete transaction details\n- Payment status\n- Amount and timestamps"
+			},
+			"response": [
+				{
+					"name": "Success Response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "trxID",
+									"value": "8HK7D15MNO",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}bkash/search-transaction",
+							"host": [
+								"{{base_url}}bkash"
+							],
+							"path": [
+								"search-transaction"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [],
+					"cookie": [],
+					"body": "{\n    \"status\": true,\n    \"message\": \"Transaction found\",\n    \"data\": {\n        \"trxID\": \"8HK7D15MNO\",\n        \"initiationTime\": \"2025-11-10T10:25:00Z\",\n        \"completedTime\": \"2025-11-10T10:30:00Z\",\n        \"transactionType\": \"Payment\",\n        \"transactionStatus\": \"Completed\",\n        \"amount\": \"1000\",\n        \"currency\": \"BDT\",\n        \"organizationShortCode\": \"123456\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "5. Get Packages (For Testing)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}packages",
+					"host": [
+						"{{base_url}}packages"
+					]
+				},
+				"description": "Get all available packages to see package_id for payment testing."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/api/",
+			"type": "string"
+		},
+		{
+			"key": "payment_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "merchant_invoice_number",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+

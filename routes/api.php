@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\FirebaseAuthController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\RevisionController;
 use App\Http\Controllers\Api\SocialLoginController;
+use App\Http\Controllers\Api\BkashPaymentController;
 use App\Http\Controllers\Api\SubscribtionController;
 use App\Http\Controllers\Api\TeacherPanelController;
 use App\Http\Controllers\Api\UserAuthController;
@@ -275,6 +276,15 @@ Route::controller(SubscribtionController::class)->group(function () {
     Route::post('/purchase-package', 'purchasePackage');
     Route::post('/package-history', 'packageHistory');
     Route::post('/v2/package-history', 'packageHistoryv2')->middleware('auth:sanctum');
+});
+
+// bKash Payment Gateway API Routes
+Route::prefix('bkash')->controller(BkashPaymentController::class)->group(function () {
+    Route::post('/create-payment', 'createPayment');
+    Route::get('/callback', 'callback');
+    Route::post('/callback', 'callback');
+    Route::post('/check-payment-status', 'checkPaymentStatus');
+    Route::post('/search-transaction', 'searchTransaction');
 });
 
 Route::middleware('auth:sanctum')->controller(UserProfileController::class)->prefix('/profile')->group(function () {

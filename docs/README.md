@@ -37,6 +37,52 @@ if (response.data.is_live_exam && response.data.exams.length > 0) {
 
 ---
 
+## 🆕 NEW FEATURE - November 10, 2025
+
+### bKash Payment Gateway Integration
+
+**Mobile app users can now purchase packages directly using bKash!**
+
+#### Features:
+- ✅ Complete automated payment flow
+- ✅ Create payment and redirect to bKash
+- ✅ Automatic callback handling
+- ✅ Package activation on successful payment
+- ✅ Payment status checking
+- ✅ Transaction search and verification
+
+#### Quick Start:
+```kotlin
+// 1. Create Payment
+POST /api/bkash/create-payment
+Body: { package_id: 1, user_id: 1, amount: 1000 }
+
+// 2. Open bkashURL in WebView
+val intent = Intent(Intent.ACTION_VIEW, Uri.parse(bkashURL))
+startActivity(intent)
+
+// 3. User completes payment → Package activated automatically
+```
+
+#### Test Credentials (Sandbox):
+- Wallet: `01770618567`
+- OTP: `123456`
+- PIN: `12345`
+
+#### New Endpoints:
+- `POST /api/bkash/create-payment` - Create payment
+- `POST /api/bkash/check-payment-status` - Check payment status
+- `POST /api/bkash/search-transaction` - Search transaction
+- `GET /api/bkash/callback` - Auto callback (handled by bKash)
+
+**📖 Documentation:**
+- Complete Guide: `docs/BKASH_PAYMENT_INTEGRATION.md`
+- Quick Start: `docs/BKASH_QUICK_START.md`
+- Postman: `docs/bKash_Payment_API.postman_collection.json`
+- Summary: `BKASH_IMPLEMENTATION_SUMMARY.md`
+
+---
+
 ## Postman Collections
 
 This directory contains comprehensive Postman collections for the Exam App APIs.
@@ -136,11 +182,16 @@ This directory contains comprehensive Postman collections for the Exam App APIs.
 - Update Profile
 - Ask Query
 
-### 5. Packages & Subscription (4 endpoints)
+### 5. Packages & Subscription (9 endpoints)
 - Get Packages
+- Get Upcoming Packages
 - Purchase Package
 - Get Package History
 - Get Package History V2
+- **bKash Create Payment** ⭐ NEW
+- **bKash Check Payment Status** ⭐ NEW
+- **bKash Search Transaction** ⭐ NEW
+- **bKash Callback (Auto)** ⭐ NEW
 
 ### 6. Revision Module (6 endpoints)
 - Get Revision Subject List
