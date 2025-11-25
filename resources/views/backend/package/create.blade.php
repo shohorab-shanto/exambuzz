@@ -518,33 +518,21 @@
                                                 <label class="form-label form-check-label"
                                                        for="Material_BCS">BCS</label>
                                                 @php
-                                                    $bcs_folder = \App\Models\MaterialFolder::whereNull('parent_id')->where('status', 1)->where('type', 'BCS')->get();
+                                                    $bcs_folder = \App\Models\MaterialFolder::with('children')
+                                                        ->whereNull('parent_id')
+                                                        ->where('status', 1)
+                                                        ->where('type', 'BCS')
+                                                        ->get();
                                                 @endphp
 
                                                 @foreach($bcs_folder as $item)
-                                                    <div class="form-check">
-                                                        <input type="checkbox"
-                                                               name="permission[Material][BCS][{{ $item->id }}]"
-                                                               value="true"
-                                                               {{ isset($package) && isset($package->permission['Material']) && isset($package->permission['Material']['BCS']) && multiKeyExists($package->permission['Material']['BCS'], $item->id) ? 'checked' : '' }}
-                                                               class="form-check-input"
-                                                               id="Material_BCS_Folder{{ $item->id }}">
-                                                        <label class="form-label form-check-label"
-                                                               for="Material_BCS_Folder{{ $item->id }}">{{ $item->name }}</label>
-
-                                                        @foreach($item->children as $sub_folder)
-                                                            <div class="form-check">
-                                                                <input type="checkbox"
-                                                                       name="permission[Material][BCS][{{$item->id}}][{{ $sub_folder->id }}]"
-                                                                       value="true"
-                                                                       {{ isset($package) && isset($package->permission['Material']) && isset($package->permission['Material']['BCS']) && isset($package->permission['Material']['BCS'][$item->id]) && multiKeyExists($package->permission['Material']['BCS'][$item->id], $sub_folder->id) ? 'checked' : '' }}
-                                                                       class="form-check-input"
-                                                                       id="Material_BCS_Sub_Folder{{ $sub_folder->id }}">
-                                                                <label class="form-label form-check-label"
-                                                                       for="Material_BCS_Sub_Folder{{ $sub_folder->id }}">{{ $sub_folder->name }}</label>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
+                                                dd($item);
+                                                    @include('backend.package.partials.material-folder-tree', [
+                                                        'folder' => $item,
+                                                        'permissionKey' => 'BCS',
+                                                        'path' => [],
+                                                        'package' => $package ?? null,
+                                                    ])
                                                 @endforeach
                                             </div>
 
@@ -556,33 +544,20 @@
                                                        for="Material_Bank">Bank</label>
 
                                                 @php
-                                                    $bank_folder = \App\Models\MaterialFolder::whereNull('parent_id')->where('status', 1)->where('type', 'Bank')->get();
+                                                    $bank_folder = \App\Models\MaterialFolder::with('children')
+                                                        ->whereNull('parent_id')
+                                                        ->where('status', 1)
+                                                        ->where('type', 'Bank')
+                                                        ->get();
                                                 @endphp
 
                                                 @foreach($bank_folder as $item)
-                                                    <div class="form-check">
-                                                        <input type="checkbox"
-                                                               name="permission[Material][Bank][{{ $item->id }}]"
-                                                               value="true"
-                                                               {{ isset($package) && isset($package->permission['Material']) && isset($package->permission['Material']['Bank']) && multiKeyExists($package->permission['Material']['Bank'], $item->id) ? 'checked' : '' }}
-                                                               class="form-check-input"
-                                                               id="Material_Bank_Folder{{ $item->id }}">
-                                                        <label class="form-label form-check-label"
-                                                               for="Material_Bank_Folder{{ $item->id }}">{{ $item->name }}</label>
-
-                                                        @foreach($item->children as $sub_folder)
-                                                            <div class="form-check">
-                                                                <input type="checkbox"
-                                                                       name="permission[Material][Bank][{{$item->id}}][{{ $sub_folder->id }}]"
-                                                                       value="true"
-                                                                       {{ isset($package) && isset($package->permission['Material']) && isset($package->permission['Material']['Bank']) && isset($package->permission['Material']['Bank'][$item->id]) && multiKeyExists($package->permission['Material']['Bank'][$item->id], $sub_folder->id) ? 'checked' : '' }}
-                                                                       class="form-check-input"
-                                                                       id="Material_Bank_Sub_Folder{{ $sub_folder->id }}">
-                                                                <label class="form-label form-check-label"
-                                                                       for="Material_Bank_Sub_Folder{{ $sub_folder->id }}">{{ $sub_folder->name }}</label>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
+                                                    @include('backend.package.partials.material-folder-tree', [
+                                                        'folder' => $item,
+                                                        'permissionKey' => 'Bank',
+                                                        'path' => [],
+                                                        'package' => $package ?? null,
+                                                    ])
                                                 @endforeach
                                             </div>
 
@@ -594,33 +569,19 @@
                                                 <label class="form-label form-check-label"
                                                        for="Material_Recent">Recent</label>
                                                 @php
-                                                    $routine_folder = \App\Models\MaterialFolder::where('status', 1)->where('type', 'Routine')->get();
+                                                    $routine_folder = \App\Models\MaterialFolder::with('children')
+                                                        ->where('status', 1)
+                                                        ->where('type', 'Routine')
+                                                        ->get();
                                                 @endphp
 
                                                 @foreach($routine_folder as $item)
-                                                    <div class="form-check">
-                                                        <input type="checkbox"
-                                                               name="permission[Material][Recent][{{ $item->id }}]"
-                                                               value="true"
-                                                               {{ isset($package) && isset($package->permission['Material']) && isset($package->permission['Material']['Recent']) && multiKeyExists($package->permission['Material']['Recent'], $item->id) ? 'checked' : '' }}
-                                                               class="form-check-input"
-                                                               id="Material_Routine_Folder{{ $item->id }}">
-                                                        <label class="form-label form-check-label"
-                                                               for="Material_Routine_Folder{{ $item->id }}">{{ $item->name }}</label>
-
-                                                        @foreach($item->children as $sub_folder)
-                                                            <div class="form-check">
-                                                                <input type="checkbox"
-                                                                       name="permission[Material][Recent][{{$item->id}}][{{ $sub_folder->id }}]"
-                                                                       value="true"
-                                                                       {{ isset($package) && isset($package->permission['Material']) && isset($package->permission['Material']['Recent']) && isset($package->permission['Material']['Recent'][$item->id]) && multiKeyExists($package->permission['Material']['Recent'][$item->id], $sub_folder->id) ? 'checked' : '' }}
-                                                                       class="form-check-input"
-                                                                       id="Material_Recent_Sub_Folder{{ $sub_folder->id }}">
-                                                                <label class="form-label form-check-label"
-                                                                       for="Material_Recent_Sub_Folder{{ $sub_folder->id }}">{{ $sub_folder->name }}</label>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
+                                                    @include('backend.package.partials.material-folder-tree', [
+                                                        'folder' => $item,
+                                                        'permissionKey' => 'Recent',
+                                                        'path' => [],
+                                                        'package' => $package ?? null,
+                                                    ])
                                                 @endforeach
 
                                             </div>
@@ -635,33 +596,19 @@
                                                        for="Material_Record_Class">Record Class</label>
 
                                                 @php
-                                                    $record_class_folder = \App\Models\MaterialFolder::where('status', 1)->where('type', 'Record Class')->get();
+                                                    $record_class_folder = \App\Models\MaterialFolder::with('children')
+                                                        ->where('status', 1)
+                                                        ->where('type', 'Record Class')
+                                                        ->get();
                                                 @endphp
 
                                                 @foreach($record_class_folder as $item)
-                                                    <div class="form-check">
-                                                        <input type="checkbox"
-                                                               name="permission[Material][Record_Class][{{ $item->id }}]"
-                                                               value="true"
-                                                               {{ isset($package) && isset($package->permission['Material']) && isset($package->permission['Material']['Record_Class']) && multiKeyExists($package->permission['Material']['Record_Class'], $item->id) ? 'checked' : '' }}
-                                                               class="form-check-input"
-                                                               id="Material_Record_Class_Folder{{ $item->id }}">
-                                                        <label class="form-label form-check-label"
-                                                               for="Material_Record_Class_Folder{{ $item->id }}">{{ $item->name }}</label>
-
-                                                        @foreach($item->children as $sub_folder)
-                                                            <div class="form-check">
-                                                                <input type="checkbox"
-                                                                       name="permission[Material][Record_Class][{{$item->id}}][{{ $sub_folder->id }}]"
-                                                                       value="true"
-                                                                       {{ isset($package) && isset($package->permission['Material']) && isset($package->permission['Material']['Record_Class']) && isset($package->permission['Material']['Record_Class'][$item->id]) && multiKeyExists($package->permission['Material']['Record_Class'][$item->id], $sub_folder->id) ? 'checked' : '' }}
-                                                                       class="form-check-input"
-                                                                       id="Material_Record_Class_Sub_Folder{{ $sub_folder->id }}">
-                                                                <label class="form-label form-check-label"
-                                                                       for="Material_Record_Class_Sub_Folder{{ $sub_folder->id }}">{{ $sub_folder->name }}</label>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
+                                                    @include('backend.package.partials.material-folder-tree', [
+                                                        'folder' => $item,
+                                                        'permissionKey' => 'Record_Class',
+                                                        'path' => [],
+                                                        'package' => $package ?? null,
+                                                    ])
                                                 @endforeach
                                             </div>
                                         </div>

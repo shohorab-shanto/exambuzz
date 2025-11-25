@@ -193,9 +193,9 @@
                     <a href="{{ route('exam.written', ['ref' => 'Others', 'type' => 'Written', 'child' => 'Petrobangla']) }}"
                        class="text-info">Petrobangla Written Exam</a></li>
 
-                <li>
+                <!-- <li>
                     <a href="{{ route('exam.written', ['ref' => 'Others', 'type' => 'Written', 'child' => 'si']) }}"
-                       class="text-info">SI Written Exam</a></li>
+                       class="text-info">SI Written Exam</a></li> -->
 
 
 

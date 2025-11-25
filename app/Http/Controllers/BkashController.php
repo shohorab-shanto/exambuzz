@@ -168,7 +168,7 @@ class BkashController extends Controller
 
         $response = $this->curlWithBody('/tokenized/checkout/token/grant', $header, 'POST', json_encode($body_data));
 
-        dd($response);
+        // dd($response);
 
         $idToken = json_decode($response)->id_token;
 
