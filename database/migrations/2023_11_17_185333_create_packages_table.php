@@ -25,6 +25,7 @@ return new class extends Migration {
             $table->integer('discount_amount')->default(0); // New column for discount amount
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
