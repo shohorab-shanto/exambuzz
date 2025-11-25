@@ -526,7 +526,6 @@
                                                 @endphp
 
                                                 @foreach($bcs_folder as $item)
-                                                dd($item);
                                                     @include('backend.package.partials.material-folder-tree', [
                                                         'folder' => $item,
                                                         'permissionKey' => 'BCS',
