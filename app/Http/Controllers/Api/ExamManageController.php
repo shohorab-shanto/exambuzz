@@ -30,7 +30,8 @@ class ExamManageController extends Controller
         $is_live = false;
 
         $exams = [];
-
+        $upcoming_exam_date = null;
+        // dd($sub);
         if ($sub === 'Preliminary') {
             $exams = Exam::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
@@ -50,6 +51,21 @@ class ExamManageController extends Controller
                 },
             ])->get();
 
+            // Get upcoming exam date
+            $upcomingExamQuery = Exam::where('status', 1)
+                ->where('published_at', '>', Carbon::now('Asia/Dhaka')->toDateTimeString())
+                ->where('category', $category)
+                ->where('subcategory', $sub);
+
+            if ($child) {
+                $upcomingExamQuery = $upcomingExamQuery->where('childcategory', $child);
+            }
+
+            $upcomingExam = $upcomingExamQuery->orderBy('published_at', 'asc')->first();
+            if ($upcomingExam) {
+                $upcoming_exam_date = $upcomingExam->published_at;
+            }
+
         } elseif ($sub === 'Written') {
             $exams = Written::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
@@ -67,22 +83,40 @@ class ExamManageController extends Controller
                 },
             ])->get();
 
+            // Get upcoming exam date
+            $upcomingExamQuery = Written::where('status', 1)
+                ->where('published_at', '>', Carbon::now('Asia/Dhaka')->toDateTimeString())
+                ->where('category', $category)
+                ->where('subcategory', $sub);
+
+            if ($child) {
+                $upcomingExamQuery = $upcomingExamQuery->where('childcategory', $child);
+            }
+
+            $upcomingExam = $upcomingExamQuery->orderBy('published_at', 'asc')->first();
+            if ($upcomingExam) {
+                $upcoming_exam_date = $upcomingExam->published_at;
+            }
+
         }
 
-        $data['exams'] = $exams;
+        $data['exams'] = $exams ?? [];
 
-        if ($exams && count($exams) > 0) {
+        if ($exams && is_countable($exams) && count($exams) > 0) {
             // Attach subjects and sources to each exam
             foreach ($exams as $exam) {
-                $exam['subjects'] = Subject::whereIn('id', explode(',', $exam->subject_id))->get();
-                $exam['sources'] = TopicSource::whereIn('id', explode(',', $exam->topic_id))->get();
+                if ($exam->subject_id && $exam->topic_id) {
+                    $exam['subjects'] = Subject::whereIn('id', explode(',', $exam->subject_id))->get();
+                    $exam['sources'] = TopicSource::whereIn('id', explode(',', $exam->topic_id))->get();
+                }
             }
 
             $is_live = true;
         }
 
         $data['is_live_exam'] = $is_live;
-        $data['total_live_exams'] = count($exams);
+        $data['total_live_exams'] = is_countable($exams) ? count($exams) : 0;
+        $data['upcoming_exam_date'] = $upcoming_exam_date;
 
         return $this->successMessage('', $data);
     }
