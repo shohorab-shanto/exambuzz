@@ -218,7 +218,8 @@ class BkashController extends Controller
             'merchantInvoiceNumber' => $request->merchantInvoiceNumber ? $request->merchantInvoiceNumber : "Inv_" . Str::random(6)
         );
 
-        $response = $this->curlWithBody('/tokenized/checkout/create', $header, 'POST', json_encode($body_data));
+        $response = $this->curlWithBody('/tokenized/checkout/create', $header, 'POST', json_encode($body_data));   
+        \Log::info('bKash API Response:', ['response' => $response]);
 
         // dd($response);
 
