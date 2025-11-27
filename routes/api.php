@@ -143,17 +143,40 @@ Route::middleware('auth:sanctum')->post('/v2/get-material', function (Request $r
     $allFolders = $baseQuery->with('materials')->latest()->get();
 
     // Collect all parent IDs that are referenced but not in the result set
-    $parentIds = $allFolders->pluck('parent_id')->filter()->unique();
-    $existingIds = $allFolders->pluck('id');
-    $missingParentIds = $parentIds->diff($existingIds);
+    // $parentIds = $allFolders->pluck('parent_id')->filter()->unique();
+    // $existingIds = $allFolders->pluck('id');
+    // $missingParentIds = $parentIds->diff($existingIds);
 
-    // Load missing parent folders to maintain hierarchy integrity
-    if ($missingParentIds->isNotEmpty()) {
+    // // Load missing parent folders to maintain hierarchy integrity
+    // if ($missingParentIds->isNotEmpty()) {
+    //     $missingParents = \App\Models\MaterialFolder::whereIn('id', $missingParentIds)
+    //         ->where('type', $request->category)
+    //         ->get();
+    //     $allFolders = $allFolders->merge($missingParents);
+    // }
+
+    // Recursively load all missing parent folders to maintain complete hierarchy
+    $maxIterations = 20; // Prevent infinite loops
+    $iteration = 0;
+    
+    do {
+        $parentIds = $allFolders->pluck('parent_id')->filter()->unique();
+        $existingIds = $allFolders->pluck('id');
+        $missingParentIds = $parentIds->diff($existingIds);
+        
+        if ($missingParentIds->isEmpty()) {
+            break;
+        }
+        
         $missingParents = \App\Models\MaterialFolder::whereIn('id', $missingParentIds)
             ->where('type', $request->category)
+            ->with('materials')
             ->get();
+            
         $allFolders = $allFolders->merge($missingParents);
-    }
+        $iteration++;
+        
+    } while ($iteration < $maxIterations);
 
     // Load and process materials for ALL folders
     foreach ($allFolders as $folder) {
