@@ -23,15 +23,23 @@ class BkashPaymentController extends Controller
 
     public function __construct()
     {
-        env('SANDBOX') ? $this->base_url = 'https://tokenized.sandbox.bka.sh/v1.2.0-beta' : $this->base_url = 'https://tokenized.pay.bka.sh/v1.2.0-beta';
+        // $this->base_url = config('bkash.sandbox') ? 'https://tokenized.sandbox.bka.sh/v1.2.0-beta' : 'https://tokenized.pay.bka.sh/v1.2.0-beta';
+        // $this->username = config('bkash.username');
+        // $this->password = config('bkash.password');
+        // $this->app_key = config('bkash.app_key');
+        // $this->app_secret = config('bkash.app_secret');
+
+        $this->base_url = env('BKASH_BASE_URL');
         $this->username = env('BKASH_USERNAME');
         $this->password = env('BKASH_PASSWORD');
         $this->app_key = env('BKASH_APP_KEY');
         $this->app_secret = env('BKASH_APP_SECRET');
+        // dd($this->username);
     }
 
     public function authHeaders()
     {
+        // dd($this->grant());
         return array(
             'Content-Type:application/json',
             'Authorization:' . $this->grant(),
@@ -100,9 +108,9 @@ class BkashPaymentController extends Controller
             ]);
         }
 
-        DB::beginTransaction();
+        // DB::beginTransaction();
 
-        $sandbox = env('SANDBOX');
+        $sandbox = config('bkash.sandbox');
 
         $tokenData = DB::table('bkash_token')->where('sandbox_mode', $sandbox)->first();
 
@@ -142,7 +150,7 @@ class BkashPaymentController extends Controller
         $response = $this->curlWithBody('/tokenized/checkout/token/grant', $header, 'POST', json_encode($body_data));
 
         $responseData = json_decode($response);
-
+        // dd($header,$body_data,$response);
         if (!isset($responseData->id_token)) {
             Log::error('bKash token grant failed', ['response' => $response]);
             return null;
@@ -160,9 +168,9 @@ class BkashPaymentController extends Controller
             ]);
 
         if ($updatedRows > 0) {
-            DB::commit();
+            // DB::commit();
         }
-
+        // dd($idToken);
         return $idToken;
     }
 
@@ -220,21 +228,25 @@ class BkashPaymentController extends Controller
                 'merchant_invoice_number' => $merchantInvoiceNumber,
             ];
 
+            // dd($paymentData);
+
             // Store in cache for 15 minutes
             cache()->put('bkash_payment_' . $merchantInvoiceNumber, $paymentData, now()->addMinutes(15));
-
+            // dd(url('/api/bkash/callback'));
             $body_data = array(
                 'mode' => '0011',
-                'payerReference' => $user->phone,
-                'callbackURL' => url('/api/bkash/callback'),
+                'payerReference' => $user->phone ?? '01677444438',
+                'callbackURL' => url('/bkash-callback'),
                 'amount' => $request->amount,
                 'currency' => 'BDT',
                 'intent' => 'sale',
                 'merchantInvoiceNumber' => $merchantInvoiceNumber
             );
 
+            
             $response = $this->curlWithBody('/tokenized/checkout/create', $header, 'POST', json_encode($body_data));
-
+            // dd($response);
+            
             $responseData = json_decode($response);
 
             if (!isset($responseData->bkashURL)) {
