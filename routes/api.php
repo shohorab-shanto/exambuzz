@@ -142,6 +142,19 @@ Route::middleware('auth:sanctum')->post('/v2/get-material', function (Request $r
     // Get ALL folders of this type (not just root folders)
     $allFolders = $baseQuery->with('materials')->latest()->get();
 
+    // Collect all parent IDs that are referenced but not in the result set
+    $parentIds = $allFolders->pluck('parent_id')->filter()->unique();
+    $existingIds = $allFolders->pluck('id');
+    $missingParentIds = $parentIds->diff($existingIds);
+
+    // Load missing parent folders to maintain hierarchy integrity
+    if ($missingParentIds->isNotEmpty()) {
+        $missingParents = \App\Models\MaterialFolder::whereIn('id', $missingParentIds)
+            ->where('type', $request->category)
+            ->get();
+        $allFolders = $allFolders->merge($missingParents);
+    }
+
     // Load and process materials for ALL folders
     foreach ($allFolders as $folder) {
         if ($folder->materials && $folder->materials->count() > 0) {
