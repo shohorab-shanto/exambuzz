@@ -32,6 +32,9 @@
                         {{ $item->status == 1 ? 'Active' : 'Inactive' }} <br> Package type: {{ $item->package_type }}
                         <br>Total Purchased: {{ $item->package_history_count }} Students, Total sell amount:
                         {{ $item->packageHistory->sum('amount') }} BDT
+                        @if($item->url)
+                            <br><strong>URL:</strong> <a href="{{ $item->url }}" target="_blank" class="text-primary">{{ $item->url }}</a>
+                        @endif
                     </div>
                     <hr>
                     @if ($item->details)

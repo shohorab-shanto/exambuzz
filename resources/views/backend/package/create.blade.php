@@ -723,6 +723,19 @@
                                            value="{{ $package->discount_amount ?? '0' }}">
                                 </div>
 
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">URL</label>
+                                    <input type="url" 
+                                        class="form-control" 
+                                        name="url"
+                                        placeholder="Enter external URL (e.g. Telegram, Website, WhatsApp)"
+                                        value="{{ $package->url ?? '' }}">
+
+                                    <small class="form-text text-muted">
+                                        Optional — Add a Telegram channel link, WhatsApp link, website URL, 
+                                        or any external link for package details or enrollment.
+                                    </small>
+                                </div>
 
                             </div>
                             <button type="submit" class="btn btn-primary">Save</button>

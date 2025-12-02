@@ -219,6 +219,7 @@ class PackageController extends Controller
                 'validity' => $request->validity,
                 'status' => $request->status,
                 'type' => $request->type,
+                'url' => $request->url,
                 'published_at' => $request->published_at,
                 'discount_amount' => $request->discount_amount,
             ]);
@@ -268,6 +269,7 @@ class PackageController extends Controller
                 'type' => $request->type,
                 'image' => $final_name1 ?? null,
                 'banner_image' => $final_banner_name ?? null,
+                'url' => $request->url,
                 'published_at' => $request->published_at,
                 'discount_amount' => $request->discount_amount,
             ]);
