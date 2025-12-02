@@ -844,10 +844,7 @@ class AnswerController extends Controller
 
         // Return data with or without review
         $data = [
-            'written_answer' => $writtenAnswer,
             'review' => $review,
-            'has_review' => $review ? true : false,
-            'conversations' => $review ? $review->conversations : []
         ];
 
         return $this->successMessage('Data retrieved successfully', $data);
