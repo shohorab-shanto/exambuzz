@@ -12,6 +12,7 @@ use App\Models\TopicSource;
 use App\Models\WrittenAnswer;
 use App\Models\WrittenAnswerQuestion;
 use App\Models\WrittenAnswerQuestionScript;
+use App\Models\WrittenAnswerReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -811,6 +812,45 @@ class AnswerController extends Controller
         }
 
         return $this->successMessage('Conversation retrieved successfully', $review);
+    }
+
+    /**
+     * Get review and all conversations by written_answer_id
+     */
+    public function getConversationByAnswerId(Request $request)
+    {
+        $request->validate([
+            'written_answer_id' => 'required|exists:written_answers,id',
+        ]);
+
+        $userId = auth()->id();
+
+        // Check if the written answer belongs to the authenticated user
+        $writtenAnswer = WrittenAnswer::with(['written', 'user', 'teacher'])
+            ->where('id', $request->written_answer_id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$writtenAnswer) {
+            return $this->errorMessage('Written answer not found or you do not have permission to access it.');
+        }
+
+        // Get review with conversations if exists
+        $review = WrittenAnswerReview::with([
+            'conversations.user',
+            'user',
+            'teacher'
+        ])->where('written_answer_id', $request->written_answer_id)->first();
+
+        // Return data with or without review
+        $data = [
+            'written_answer' => $writtenAnswer,
+            'review' => $review,
+            'has_review' => $review ? true : false,
+            'conversations' => $review ? $review->conversations : []
+        ];
+
+        return $this->successMessage('Data retrieved successfully', $data);
     }
 
     /**

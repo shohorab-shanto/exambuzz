@@ -359,6 +359,7 @@ Route::middleware('auth:sanctum')->controller(AnswerController::class)->prefix('
     Route::post('/submit-review', 'submitReview'); // Student submits rating + comment
     Route::post('/add-conversation', 'addConversationMessage'); // Add message to conversation (student/teacher/admin)
     Route::post('/get-conversation', 'getReviewConversation'); // Get full conversation thread
+    Route::post('/get-conversation-by-answer', 'getConversationByAnswerId'); // Get conversation by written_answer_id
     Route::post('/reply-review', 'replyToReview'); // Legacy - redirects to add-conversation
 });
 

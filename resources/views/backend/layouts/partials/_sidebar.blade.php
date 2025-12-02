@@ -342,7 +342,7 @@
             </a>
         </li>
 
-        <li class>
+        {{-- <li class>
             <a class="has-arrow" href="#" aria-expanded="false">
                 <div class="icon_menu">
                     <img src="{{ asset('backend/img/menu-icon/2.svg') }}" alt>
@@ -353,7 +353,7 @@
                 <li><a href="{{ route('revision_subject.index') }}">Subject</a></li>
                 <li><a href="{{ route('revision_topic.source.index') }}">Topic & Source</a></li>
             </ul>
-        </li>
+        </li> --}}
 
         <li class>
             <a class="has-arrow" href="#" aria-expanded="false">
