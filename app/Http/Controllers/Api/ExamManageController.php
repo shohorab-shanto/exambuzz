@@ -29,17 +29,26 @@ class ExamManageController extends Controller
         $data['childcategory'] = $child = $request->childcategory;
         $is_live = false;
 
+        // Get user's package IDs
+        $userPackageIds = Auth::user()->packageHistory()->pluck('package_id')->unique();
+
         $exams = [];
         $upcoming_exam_date = null;
-        // dd($sub);
+        
         if ($sub === 'Preliminary') {
-            $exams = Exam::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+            $exams = Exam::where('status', 1)
+                ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('category', $category)
                 ->where('subcategory', $sub);
 
             if ($child) {
                 $exams = $exams->where('childcategory', $child);
+            }
+
+            // Filter by user's packages if they have any
+            if ($userPackageIds->isNotEmpty()) {
+                $exams = $exams->whereIn('package_id', $userPackageIds);
             }
 
             $exams = $exams->with([
@@ -50,8 +59,7 @@ class ExamManageController extends Controller
                     return $q->where('user_id', Auth::id());
                 },
             ])->get();
-
-            // Get upcoming exam date
+            // Get upcoming exam date - filtered by user's packages
             $upcomingExamQuery = Exam::where('status', 1)
                 ->where('published_at', '>', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('category', $category)
@@ -61,19 +69,30 @@ class ExamManageController extends Controller
                 $upcomingExamQuery = $upcomingExamQuery->where('childcategory', $child);
             }
 
+            // Filter by user's packages
+            if ($userPackageIds->isNotEmpty()) {
+                $upcomingExamQuery = $upcomingExamQuery->whereIn('package_id', $userPackageIds);
+            }
+
             $upcomingExam = $upcomingExamQuery->orderBy('published_at', 'asc')->first();
             if ($upcomingExam) {
                 $upcoming_exam_date = $upcomingExam->published_at;
             }
 
         } elseif ($sub === 'Written') {
-            $exams = Written::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+            $exams = Written::where('status', 1)
+                ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('category', $category)
                 ->where('subcategory', $sub);
 
             if ($child) {
                 $exams = $exams->where('childcategory', $child);
+            }
+
+            // Filter by user's packages if they have any
+            if ($userPackageIds->isNotEmpty()) {
+                $exams = $exams->whereIn('package_id', $userPackageIds);
             }
 
             $exams = $exams->with([
@@ -83,7 +102,7 @@ class ExamManageController extends Controller
                 },
             ])->get();
 
-            // Get upcoming exam date
+            // Get upcoming exam date - filtered by user's packages
             $upcomingExamQuery = Written::where('status', 1)
                 ->where('published_at', '>', Carbon::now('Asia/Dhaka')->toDateTimeString())
                 ->where('category', $category)
@@ -91,6 +110,11 @@ class ExamManageController extends Controller
 
             if ($child) {
                 $upcomingExamQuery = $upcomingExamQuery->where('childcategory', $child);
+            }
+
+            // Filter by user's packages
+            if ($userPackageIds->isNotEmpty()) {
+                $upcomingExamQuery = $upcomingExamQuery->whereIn('package_id', $userPackageIds);
             }
 
             $upcomingExam = $upcomingExamQuery->orderBy('published_at', 'asc')->first();
