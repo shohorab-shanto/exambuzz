@@ -133,7 +133,7 @@ class BkashPaymentController extends Controller
                     ]);
 
                 if ($updatedRows > 0) {
-                    DB::commit();
+                    // DB::commit();
                 }
                 return $idToken;
             }
