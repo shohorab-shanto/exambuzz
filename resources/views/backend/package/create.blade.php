@@ -627,7 +627,7 @@
                                                 <label class="form-label form-check-label"
                                                        for="Revision_SUBJECT">Subject</label>
                                                 @php
-                                                    $subject_list = \App\Models\RevisionSubject::get();
+                                                    $subject_list = \App\Models\Subject::with('topicAndSources')->get();
                                                 @endphp
 
                                                 @foreach($subject_list as $item)
@@ -640,6 +640,24 @@
                                                                id="Revision_SUBJECT{{ $item->id }}">
                                                         <label class="form-label form-check-label"
                                                                for="Revision_SUBJECT{{ $item->id }}">{{ $item->name }}</label>
+                                                        @if($item->topicAndSources->count() > 0)
+                                                            <span class="show_exam_list"
+                                                                  style="font-size: 15px;color: #000000; margin-left: 20px;cursor: pointer;transition: transform 0.5s;">&#11167;</span>
+                                                        @endif
+                                                        @foreach($item->topicAndSources as $topic)
+                                                            <div class="all_exam_list">
+                                                                <div class="form-check">
+                                                                    <input type="checkbox"
+                                                                           name="permission[Revision][SUBJECT][{{ $item->id }}][TOPIC][{{ $topic->id }}]"
+                                                                           value="true"
+                                                                           {{ isset($package) && isset($package->permission['Revision']['SUBJECT'][$item->id]['TOPIC']) && multiKeyExists($package->permission['Revision']['SUBJECT'][$item->id]['TOPIC'], $topic->id) ? 'checked' : '' }}
+                                                                           class="form-check-input"
+                                                                           id="Revision_TOPIC{{ $item->id }}_{{ $topic->id }}">
+                                                                    <label class="form-label form-check-label"
+                                                                           for="Revision_TOPIC{{ $item->id }}_{{ $topic->id }}">{{ $topic->topic }}</label>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
                                                     </div>
                                                 @endforeach
                                             </div>
