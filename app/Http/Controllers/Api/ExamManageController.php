@@ -48,7 +48,10 @@ class ExamManageController extends Controller
 
             // Filter by user's packages if they have any
             if ($userPackageIds->isNotEmpty()) {
-                $exams = $exams->whereIn('package_id', $userPackageIds);
+                $exams = $exams->where(function($query) use ($userPackageIds) {
+                    $query->whereIn('package_id', $userPackageIds)
+                          ->orWhereNull('package_id');
+                });
             }
 
             $exams = $exams->with([
@@ -71,7 +74,10 @@ class ExamManageController extends Controller
 
             // Filter by user's packages
             if ($userPackageIds->isNotEmpty()) {
-                $upcomingExamQuery = $upcomingExamQuery->whereIn('package_id', $userPackageIds);
+                $upcomingExamQuery = $upcomingExamQuery->where(function($query) use ($userPackageIds) {
+                    $query->whereIn('package_id', $userPackageIds)
+                          ->orWhereNull('package_id');
+                });
             }
 
             $upcomingExam = $upcomingExamQuery->orderBy('published_at', 'asc')->first();
@@ -92,7 +98,10 @@ class ExamManageController extends Controller
 
             // Filter by user's packages if they have any
             if ($userPackageIds->isNotEmpty()) {
-                $exams = $exams->whereIn('package_id', $userPackageIds);
+                $exams = $exams->where(function($query) use ($userPackageIds) {
+                    $query->whereIn('package_id', $userPackageIds)
+                          ->orWhereNull('package_id');
+                });
             }
 
             $exams = $exams->with([
@@ -114,7 +123,10 @@ class ExamManageController extends Controller
 
             // Filter by user's packages
             if ($userPackageIds->isNotEmpty()) {
-                $upcomingExamQuery = $upcomingExamQuery->whereIn('package_id', $userPackageIds);
+                $upcomingExamQuery = $upcomingExamQuery->where(function($query) use ($userPackageIds) {
+                    $query->whereIn('package_id', $userPackageIds)
+                          ->orWhereNull('package_id');
+                });
             }
 
             $upcomingExam = $upcomingExamQuery->orderBy('published_at', 'asc')->first();
