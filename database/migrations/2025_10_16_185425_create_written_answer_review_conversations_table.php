@@ -11,18 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('written_answer_review_conversations', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('review_id')->comment('Links to written_answer_reviews table');
-            $table->unsignedBigInteger('user_id')->comment('Who posted this message');
-            $table->enum('user_type', ['student', 'teacher', 'admin'])->comment('Role of the person posting');
-            $table->text('message')->comment('The conversation message');
-            $table->timestamps();
+        if (!Schema::hasTable('written_answer_review_conversations')) {
+            Schema::create('written_answer_review_conversations', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('review_id');
+                $table->unsignedBigInteger('user_id');
+                $table->enum('user_type', ['student', 'teacher', 'admin']);
+                $table->text('message');
+                $table->timestamps();
 
-            // Indexes
-            $table->index('review_id');
-            $table->index('user_id');
-        });
+                $table->index('review_id');
+                $table->index('user_id');
+            });
+        }
     }
 
     /**

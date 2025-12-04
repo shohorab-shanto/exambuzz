@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('material_folder_connections', function (Blueprint $table) {
-            $table->id();
-            $table->integer('material_folders_id');
-            $table->integer('materials_id');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('material_folder_connections')) {
+            Schema::create('material_folder_connections', function (Blueprint $table) {
+                $table->id();
+                $table->integer('material_folders_id');
+                $table->integer('materials_id');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

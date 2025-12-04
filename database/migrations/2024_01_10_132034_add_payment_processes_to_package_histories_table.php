@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('package_histories', function (Blueprint $table) {
-            $table->string('payment_processes')->nullable()->after('payment_method_identity');
-        });
+        if (!Schema::hasColumn('package_histories', 'payment_processes')) {
+            Schema::table('package_histories', function (Blueprint $table) {
+                $table->string('payment_processes')->nullable()->after('payment_method_identity');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('package_histories', function (Blueprint $table) {
-            $table->dropColumn('payment_processes');
-        });
+        if (Schema::hasColumn('package_histories', 'payment_processes')) {
+            Schema::table('package_histories', function (Blueprint $table) {
+                $table->dropColumn('payment_processes');
+            });
+        }
     }
 };

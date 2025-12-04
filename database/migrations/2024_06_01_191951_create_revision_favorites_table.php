@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('revision_favorites', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('revision_topic_question_id');
-            $table->boolean('is_favorite')->default(false);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('revision_favorites')) {
+            Schema::create('revision_favorites', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('revision_topic_question_id');
+                $table->boolean('is_favorite')->default(false);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

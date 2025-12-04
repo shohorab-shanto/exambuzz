@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('revision_topic_questions', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('revision_subjects_id');
-            $table->unsignedBigInteger('revision_topic_source_id');
-            $table->longText('question_name')->nullable();
-            $table->longText('question_explanation')->nullable();
-            $table->unsignedBigInteger('correct')->default(0);
-            $table->unsignedBigInteger('negative')->default(0);
-            $table->unsignedBigInteger('empty')->default(0);
-            $table->unsignedBigInteger('total')->default(0);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('revision_topic_questions')) {
+            Schema::create('revision_topic_questions', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('revision_subjects_id');
+                $table->unsignedBigInteger('revision_topic_source_id');
+                $table->longText('question_name')->nullable();
+                $table->longText('question_explanation')->nullable();
+                $table->unsignedBigInteger('correct')->default(0);
+                $table->unsignedBigInteger('negative')->default(0);
+                $table->unsignedBigInteger('empty')->default(0);
+                $table->unsignedBigInteger('total')->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

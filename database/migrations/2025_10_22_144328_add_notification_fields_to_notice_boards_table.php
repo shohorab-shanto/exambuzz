@@ -12,10 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('notice_boards', function (Blueprint $table) {
-            $table->boolean('send_notification')->default(true)->after('status')->comment('Send push notification to users');
-            $table->string('target_audience')->default('all')->after('send_notification')->comment('all, user, teacher');
-            $table->boolean('notification_sent')->default(false)->after('target_audience')->comment('Track if notification was sent');
-            $table->timestamp('notification_sent_at')->nullable()->after('notification_sent');
+            if (!Schema::hasColumn('notice_boards', 'send_notification')) {
+                $table->boolean('send_notification')->default(true)->after('status');
+            }
+            if (!Schema::hasColumn('notice_boards', 'target_audience')) {
+                $table->string('target_audience')->default('all')->after('send_notification');
+            }
+            if (!Schema::hasColumn('notice_boards', 'notification_sent')) {
+                $table->boolean('notification_sent')->default(false)->after('target_audience');
+            }
+            if (!Schema::hasColumn('notice_boards', 'notification_sent_at')) {
+                $table->timestamp('notification_sent_at')->nullable()->after('notification_sent');
+            }
         });
     }
 
@@ -25,7 +33,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('notice_boards', function (Blueprint $table) {
-            $table->dropColumn(['send_notification', 'target_audience', 'notification_sent', 'notification_sent_at']);
+            foreach (['send_notification', 'target_audience', 'notification_sent', 'notification_sent_at'] as $col) {
+                if (Schema::hasColumn('notice_boards', $col)) {
+                    $table->dropColumn($col);
+                }
+            }
         });
     }
 };

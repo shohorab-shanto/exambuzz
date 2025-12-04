@@ -10,13 +10,15 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('revision_topic_question_options', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('revision_topic_question_id');
-            $table->text('option');
-            $table->tinyInteger('is_answer');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('revision_topic_question_options')) {
+            Schema::create('revision_topic_question_options', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('revision_topic_question_id');
+                $table->text('option');
+                $table->tinyInteger('is_answer');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

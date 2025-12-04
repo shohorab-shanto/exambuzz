@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('notifications', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('written_id')->nullable();
-            $table->unsignedBigInteger('package_id')->nullable();
-            $table->string('to');
-            $table->string('name');
-            $table->longText('details');
-            $table->tinyInteger('status', 0, 1)->default(0);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('notifications')) {
+            Schema::create('notifications', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('written_id')->nullable();
+                $table->unsignedBigInteger('package_id')->nullable();
+                $table->string('to');
+                $table->string('name');
+                $table->longText('details');
+                $table->tinyInteger('status', 0, 1)->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

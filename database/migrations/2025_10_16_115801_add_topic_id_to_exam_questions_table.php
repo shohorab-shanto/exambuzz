@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('exam_questions', function (Blueprint $table) {
-            $table->unsignedBigInteger('topic_id')->nullable()->after('subject_id');
-        });
+        if (!Schema::hasColumn('exam_questions', 'topic_id')) {
+            Schema::table('exam_questions', function (Blueprint $table) {
+                $table->unsignedBigInteger('topic_id')->nullable()->after('subject_id');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('exam_questions', function (Blueprint $table) {
-            $table->dropColumn('topic_id');
-        });
+        if (Schema::hasColumn('exam_questions', 'topic_id')) {
+            Schema::table('exam_questions', function (Blueprint $table) {
+                $table->dropColumn('topic_id');
+            });
+        }
     }
 };
