@@ -23,42 +23,47 @@ class RevisionController extends Controller
     // getRevisionSubjectList
     public function getRevisionSubjectList()
     {
-        // with pagination
-        $perPage = Subject::count() ?: $this->perPage;
-        
-        $subject = Subject::withCount([
+        // sensible default if $this->perPage is not set
+        $perPage = $this->perPage ?? 10;
+
+        // paginate subjects from DB (this is the important part)
+        $subjects = Subject::withCount([
             'exams as questions_count',
             'topicAndSources as topic_count',
-        ])->get()->map(function($item) {
-            // Count favorites for this subject's questions
-            $item->favorite_count = Favorite::whereIn('question_id', 
-                ExamQuestion::where('subject_id', $item->id)->pluck('id')
-            )->where('user_id', auth()->id())
-            ->where('category', 'revision')
-            ->count();
-            
-            // Count read questions for this subject
-            $item->read_count = ExamQuestionRead::whereIn('exam_question_id', 
-                ExamQuestion::where('subject_id', $item->id)->pluck('id')
-            )->where('user_id', auth()->id())
-            ->where('is_read', 1)
-            ->count();
-            
+        ])->paginate($perPage);
+
+        // collect current page subject ids
+        $subjectIds = $subjects->getCollection()->pluck('id')->all();
+
+        // aggregated favorite counts per subject for current user (category = revision)
+        $favoriteCounts = Favorite::join('exam_questions', 'favorites.question_id', '=', 'exam_questions.id')
+            ->where('favorites.user_id', auth()->id())
+            ->where('favorites.category', 'revision')
+            ->whereIn('exam_questions.subject_id', $subjectIds)
+            ->groupBy('exam_questions.subject_id')
+            ->selectRaw('exam_questions.subject_id, COUNT(favorites.id) AS fav_count')
+            ->pluck('fav_count', 'subject_id'); // [subject_id => fav_count]
+
+        // aggregated read counts per subject for current user
+        $readCounts = \DB::table('exam_question_reads')
+            ->join('exam_questions', 'exam_question_reads.exam_question_id', '=', 'exam_questions.id')
+            ->where('exam_question_reads.user_id', auth()->id())
+            ->where('exam_question_reads.is_read', 1)
+            ->whereIn('exam_questions.subject_id', $subjectIds)
+            ->groupBy('exam_questions.subject_id')
+            ->selectRaw('exam_questions.subject_id, COUNT(exam_question_reads.id) AS read_count')
+            ->pluck('read_count', 'subject_id'); // [subject_id => read_count]
+
+        // attach counts (default 0) to the paginated collection items
+        $subjects->getCollection()->transform(function ($item) use ($favoriteCounts, $readCounts) {
+            $item->favorite_count = $favoriteCounts->get($item->id, 0);
+            $item->read_count     = $readCounts->get($item->id, 0);
             return $item;
         });
 
-        // Manually create pagination
-        $currentPage = request()->get('page', 1);
-        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
-            $subject->forPage($currentPage, $perPage),
-            $subject->count(),
-            $perPage,
-            $currentPage,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
-
-        return $this->successMessage('Data fetched successfully', $paginated);
+        return $this->successMessage('Data fetched successfully', $subjects);
     }
+
 
     // getRevisionTopicList
     public function getRevisionTopicList($id)
@@ -137,10 +142,10 @@ class RevisionController extends Controller
 
     public function getRevisionQuestionListSubject($id)
     {
-        // with pagination
-        $perPage = ExamQuestion::where('subject_id', $id)->count() ?: $this->perPage;
-        
-        $question = ExamQuestion::where('exam_questions.subject_id', $id)
+        // Set proper perPage (fallback to $this->perPage or default 10)
+        $perPage = $this->perPage ?? 10;
+
+        $questions = ExamQuestion::where('exam_questions.subject_id', $id)
             ->with([
                 'questionOptions',
                 'isFavorite',
@@ -152,20 +157,11 @@ class RevisionController extends Controller
             })
             ->select('exam_questions.*', 'exam_question_reads.is_read')
             ->orderByRaw('COALESCE(exam_question_reads.is_read, 0) ASC')
-            ->get();
+            ->paginate($perPage); // <-- FIXED PAGINATION HERE
 
-        // Manually create pagination
-        $currentPage = request()->get('page', 1);
-        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
-            $question->forPage($currentPage, $perPage),
-            $question->count(),
-            $perPage,
-            $currentPage,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
-
-        return $this->successMessage('Data fetched successfully', $paginated);
+        return $this->successMessage('Data fetched successfully', $questions);
     }
+
 
     // revisionQuestionFavorite
 
