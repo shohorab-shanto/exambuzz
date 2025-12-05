@@ -274,17 +274,21 @@ class PackageController extends Controller
                 'discount_amount' => $request->discount_amount,
             ]);
 
-            User::where('type', 'user')->chunk(200, function ($users) {
-                foreach ($users as $user) {
-                    if (isset($user->fcm_token)) {
-
-                        FCMService::send(
-                            $user->fcm_token,
-                            [
-                                'title' => "নতুন প্যাকেজ",
-                                'body' => "নতুন একটি ব্যাচ চালু হয়েছে। আপনার প্রস্তুতি যাচাই করুন।",
-                            ]
-                        );
+            User::where('type', 'user')
+                ->where('status', 1)
+                ->whereNotNull('fcm_token')
+                ->chunk(200, function ($users) {
+                    foreach ($users as $user) {
+                        // try {
+                        //     FCMService::send(
+                        //         $user->fcm_token,
+                        //         [
+                        //             'title' => 'নতুন প্যাকেজ',
+                        //             'body'  => 'নতুন একটি ব্যাচ চালু হয়েছে। আপনার প্রস্তুতি যাচাই করুন।'
+                        //         ],
+                        //     );
+                        // } catch (\Throwable $e) {
+                        // }
 
                         Notification::create([
                             'name' => 'নতুন প্যাকেজ',
@@ -293,10 +297,7 @@ class PackageController extends Controller
                             'to' => 'user',
                         ]);
                     }
-
-                }
-
-            });
+                });
 
             return back()->withToastSuccess('Package created successfully');
         }

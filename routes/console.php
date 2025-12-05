@@ -192,6 +192,7 @@ Artisan::command('schema:sync {--like=} {--exclude-system}', function () {
         },
         'package_histories' => function () {
             Schema::table('package_histories', function ($table) {
+                if (!Schema::hasColumn('package_histories', 'giving_amount')) $table->integer('giving_amount')->default(0);
                 if (!Schema::hasColumn('package_histories', 'pg_transaction_id')) $table->string('pg_transaction_id')->nullable();
                 if (!Schema::hasColumn('package_histories', 'approval_code')) $table->string('approval_code')->nullable();
                 if (!Schema::hasColumn('package_histories', 'payment_processes')) $table->string('payment_processes')->nullable();

@@ -100,21 +100,21 @@ class NoticeBoardController extends Controller
                     ]);
 
                     // Send push notification if user has FCM token
-                    if (!empty($user->fcm_token)) {
-                        $sent = FCMService::send(
-                            $user->fcm_token,
-                            [
-                                'title' => $notice->title,
-                                'body' => strip_tags(substr($notice->description, 0, 150)),
-                            ]
-                        );
+                    // if (!empty($user->fcm_token)) {
+                    //     $sent = FCMService::send(
+                    //         $user->fcm_token,
+                    //         [
+                    //             'title' => $notice->title,
+                    //             'body' => strip_tags(substr($notice->description, 0, 150)),
+                    //         ]
+                    //     );
 
-                        if ($sent) {
-                            $successCount++;
-                        } else {
-                            $failureCount++;
-                        }
-                    }
+                    //     if ($sent) {
+                    //         $successCount++;
+                    //     } else {
+                    //         $failureCount++;
+                    //     }
+                    // }
                 }
             });
 
