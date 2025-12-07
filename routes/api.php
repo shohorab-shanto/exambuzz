@@ -20,6 +20,7 @@ use App\Models\Material;
 use App\Models\Notification;
 use App\Models\Page;
 use App\Models\Subject;
+use App\Models\Package;
 use App\Models\TopicSource;
 use App\Models\User;
 use App\Models\Written;
@@ -251,36 +252,82 @@ Route::middleware('auth:sanctum')->get('/get-present-live-exam', function (Reque
 
     $data = [];
 
-    // Live Preliminary exams with full details
-    $exam = Exam::where('status', 1)
-        ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-        ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-        ->with([
-            'questions.questionOptions',
-            'questions.subject',
-            'questions.topic',
-            'userAnswer' => function ($q) {
-                return $q->where('user_id', Auth::id());
-            },
-        ])
-        ->get();
+    $userPackageIds = Auth::user()->packageHistory()->pluck('package_id')->unique();
+
+    $collectTargetIds = function ($arr, $target, &$out) use (&$collectTargetIds) {
+        foreach ((array)$arr as $key => $val) {
+            if ($key === $target) {
+                if (is_array($val)) {
+                    foreach ($val as $idKey => $flag) {
+                        if (is_numeric($idKey)) {
+                            $out[] = (int)$idKey;
+                        }
+                        if (is_array($flag)) {
+                            foreach ($flag as $innerId => $innerFlag) {
+                                if (is_numeric($innerId)) {
+                                    $out[] = (int)$innerId;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (is_array($val)) {
+                $collectTargetIds($val, $target, $out);
+            }
+        }
+    };
+
+    $allowedExamIds = [];
+    $allowedWrittenIds = [];
+
+    if ($userPackageIds->isNotEmpty()) {
+        $packages = Package::whereIn('id', $userPackageIds)->select('id', 'permission')->get();
+        foreach ($packages as $pkg) {
+            $perm = is_array($pkg->permission) ? $pkg->permission : [];
+            $collectTargetIds($perm, 'Preliminary', $allowedExamIds);
+            $collectTargetIds($perm, 'Written', $allowedWrittenIds);
+        }
+    }
+
+    $allowedExamIds = collect($allowedExamIds)->unique()->values();
+    $allowedWrittenIds = collect($allowedWrittenIds)->unique()->values();
+    // dd($allowedWrittenIds);
+
+    $exam = collect([]);
+    if ($allowedExamIds->isNotEmpty()) {
+        $exam = Exam::where('status', 1)
+            ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+            ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+            ->whereIn('id', $allowedExamIds)
+            ->with([
+                'questions.questionOptions',
+                'questions.subject',
+                'questions.topic',
+                'userAnswer' => function ($q) {
+                    return $q->where('user_id', Auth::id());
+                },
+            ])->get();
+    }
 
     foreach ($exam as $item) {
         $item['subjects'] = Subject::whereIn('id', explode(',', $item->subject_id))->get();
         $item['sources'] = TopicSource::whereIn('id', explode(',', $item->topic_id))->get();
     }
 
-    // Live Written exams with full details
-    $written = Written::where('status', 1)
-        ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-        ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-        ->with([
-            'writtenQuestion',
-            'userAnswer' => function ($q) {
-                return $q->where('user_id', Auth::id());
-            },
-        ])
-        ->get();
+    $written = collect([]);
+    if ($allowedWrittenIds->isNotEmpty()) {
+        $written = Written::where('status', 1)
+            ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+            ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+            ->whereIn('id', $allowedWrittenIds)
+            ->with([
+                'writtenQuestion',
+                'userAnswer' => function ($q) {
+                    return $q->where('user_id', Auth::id());
+                },
+            ])->get();
+    }
 
     foreach ($written as $item) {
         $item['subjects'] = Subject::whereIn('id', explode(',', $item->subject_id))->get();
