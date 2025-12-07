@@ -23,17 +23,20 @@ class BkashPaymentController extends Controller
 
     public function __construct()
     {
-        // $this->base_url = config('bkash.sandbox') ? 'https://tokenized.sandbox.bka.sh/v1.2.0-beta' : 'https://tokenized.pay.bka.sh/v1.2.0-beta';
-        // $this->username = config('bkash.username');
-        // $this->password = config('bkash.password');
-        // $this->app_key = config('bkash.app_key');
-        // $this->app_secret = config('bkash.app_secret');
+        $this->base_url = config('bkash.sandbox') 
+            ? 'https://tokenized.sandbox.bka.sh/v1.2.0-beta' 
+            : config('bkash.base_url', 'https://tokenized.pay.bka.sh/v1.2.0-beta');
 
-        $this->base_url = env('BKASH_BASE_URL');
-        $this->username = env('BKASH_USERNAME');
-        $this->password = env('BKASH_PASSWORD');
-        $this->app_key = env('BKASH_APP_KEY');
-        $this->app_secret = env('BKASH_APP_SECRET');
+        $this->username = config('bkash.username');
+        $this->password = config('bkash.password');
+        $this->app_key = config('bkash.app_key');
+        $this->app_secret = config('bkash.app_secret');
+
+        // $this->base_url = env('BKASH_BASE_URL');
+        // $this->username = env('BKASH_USERNAME');
+        // $this->password = env('BKASH_PASSWORD');
+        // $this->app_key = env('BKASH_APP_KEY');
+        // $this->app_secret = env('BKASH_APP_SECRET');
         // dd($this->username);
     }
 
