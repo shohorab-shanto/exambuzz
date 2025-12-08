@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache;
+use Carbon\Carbon;
 
 class BkashPaymentController extends Controller
 {
@@ -50,6 +52,32 @@ class BkashPaymentController extends Controller
         );
     }
 
+    public function grant(){
+        $value = Cache::get('bkash_token'); 
+                        if ($value){
+                        return $value;
+                    }
+        $header = array(
+            'Content-Type:application/json',
+            'username:' . $this->username,
+            'password:' . $this->password
+        );
+
+        $body_data = array('app_key' => $this->app_key, 'app_secret' => $this->app_secret);
+
+        $response = $this->curlWithBody('/tokenized/checkout/token/grant', $header, 'POST', json_encode($body_data));
+        // dd($response->id_token);
+        $responseData = json_decode($response);
+        // dd($responseData->id_token);
+
+        if (!isset($responseData->id_token)) {
+            Log::error('bKash token grant failed', ['response' => $response]);
+            return null;
+        }
+        Cache::put('bkash_token', $responseData->id_token, now()->addMinutes(55));
+        return $responseData->id_token;
+    }
+
     public function curlWithBody($url, $header, $method, $body_data)
     {
         $curl = curl_init($this->base_url . $url);
@@ -83,99 +111,99 @@ class BkashPaymentController extends Controller
         return $idToken;
     }
 
-    public function grant()
-    {
-        if (!Schema::hasTable('bkash_token')) {
-            DB::beginTransaction();
-            Schema::create('bkash_token', function ($table) {
-                $table->boolean('sandbox_mode')->notNullable();
-                $table->bigInteger('id_expiry')->notNullable();
-                $table->string('id_token', 2048)->notNullable();
-                $table->bigInteger('refresh_expiry')->notNullable();
-                $table->string('refresh_token', 2048)->notNullable();
-            });
-            $insertedRows = DB::table('bkash_token')->insert([
-                'sandbox_mode' => 1,
-                'id_expiry' => 0,
-                'id_token' => 'id_token',
-                'refresh_expiry' => 0,
-                'refresh_token' => 'refresh_token',
-            ]);
+    // public function grant()
+    // {
+    //     if (!Schema::hasTable('bkash_token')) {
+    //         DB::beginTransaction();
+    //         Schema::create('bkash_token', function ($table) {
+    //             $table->boolean('sandbox_mode')->notNullable();
+    //             $table->bigInteger('id_expiry')->notNullable();
+    //             $table->string('id_token', 2048)->notNullable();
+    //             $table->bigInteger('refresh_expiry')->notNullable();
+    //             $table->string('refresh_token', 2048)->notNullable();
+    //         });
+    //         $insertedRows = DB::table('bkash_token')->insert([
+    //             'sandbox_mode' => 1,
+    //             'id_expiry' => 0,
+    //             'id_token' => 'id_token',
+    //             'refresh_expiry' => 0,
+    //             'refresh_token' => 'refresh_token',
+    //         ]);
 
-            $insertedRows = DB::table('bkash_token')->insert([
-                'sandbox_mode' => 0,
-                'id_expiry' => 0,
-                'id_token' => 'id_token',
-                'refresh_expiry' => 0,
-                'refresh_token' => 'refresh_token',
-            ]);
-        }
+    //         $insertedRows = DB::table('bkash_token')->insert([
+    //             'sandbox_mode' => 0,
+    //             'id_expiry' => 0,
+    //             'id_token' => 'id_token',
+    //             'refresh_expiry' => 0,
+    //             'refresh_token' => 'refresh_token',
+    //         ]);
+    //     }
 
-        // DB::beginTransaction();
+    //     // DB::beginTransaction();
 
-        $sandbox = config('bkash.sandbox');
+    //     $sandbox = config('bkash.sandbox');
 
-        $tokenData = DB::table('bkash_token')->where('sandbox_mode', $sandbox)->first();
+    //     $tokenData = DB::table('bkash_token')->where('sandbox_mode', $sandbox)->first();
 
-        if ($tokenData) {
-            $idExpiry = $tokenData->id_expiry;
-            $idToken = $tokenData->id_token;
-            $refreshExpiry = $tokenData->refresh_expiry;
-            $refreshToken = $tokenData->refresh_token;
+    //     if ($tokenData) {
+    //         $idExpiry = $tokenData->id_expiry;
+    //         $idToken = $tokenData->id_token;
+    //         $refreshExpiry = $tokenData->refresh_expiry;
+    //         $refreshToken = $tokenData->refresh_token;
 
-            if ($idExpiry > time()) {
-                return $idToken;
-            }
-            if ($refreshExpiry > time()) {
-                $idToken = $this->getIdTokenFromRefreshToken($refreshToken);
-                $updatedRows = DB::table('bkash_token')
-                    ->where('sandbox_mode', $sandbox)
-                    ->update([
-                        'id_expiry' => time() + 3600,
-                        'id_token' => $idToken,
-                    ]);
+    //         if ($idExpiry > time()) {
+    //             return $idToken;
+    //         }
+    //         if ($refreshExpiry > time()) {
+    //             $idToken = $this->getIdTokenFromRefreshToken($refreshToken);
+    //             $updatedRows = DB::table('bkash_token')
+    //                 ->where('sandbox_mode', $sandbox)
+    //                 ->update([
+    //                     'id_expiry' => time() + 3600,
+    //                     'id_token' => $idToken,
+    //                 ]);
 
-                if ($updatedRows > 0) {
-                    // DB::commit();
-                }
-                return $idToken;
-            }
-        }
+    //             if ($updatedRows > 0) {
+    //                 // DB::commit();
+    //             }
+    //             return $idToken;
+    //         }
+    //     }
 
-        $header = array(
-            'Content-Type:application/json',
-            'username:' . $this->username,
-            'password:' . $this->password
-        );
+    //     $header = array(
+    //         'Content-Type:application/json',
+    //         'username:' . $this->username,
+    //         'password:' . $this->password
+    //     );
 
-        $body_data = array('app_key' => $this->app_key, 'app_secret' => $this->app_secret);
+    //     $body_data = array('app_key' => $this->app_key, 'app_secret' => $this->app_secret);
 
-        $response = $this->curlWithBody('/tokenized/checkout/token/grant', $header, 'POST', json_encode($body_data));
+    //     $response = $this->curlWithBody('/tokenized/checkout/token/grant', $header, 'POST', json_encode($body_data));
 
-        $responseData = json_decode($response);
-        // dd($header,$body_data,$response);
-        if (!isset($responseData->id_token)) {
-            Log::error('bKash token grant failed', ['response' => $response]);
-            return null;
-        }
+    //     $responseData = json_decode($response);
+    //     // dd($header,$body_data,$response);
+    //     if (!isset($responseData->id_token)) {
+    //         Log::error('bKash token grant failed', ['response' => $response]);
+    //         return null;
+    //     }
 
-        $idToken = $responseData->id_token;
+    //     $idToken = $responseData->id_token;
 
-        $updatedRows = DB::table('bkash_token')
-            ->where('sandbox_mode', $sandbox)
-            ->update([
-                'id_expiry' => time() + 3600,
-                'id_token' => $idToken,
-                'refresh_expiry' => time() + 864000,
-                'refresh_token' => $responseData->refresh_token,
-            ]);
+    //     $updatedRows = DB::table('bkash_token')
+    //         ->where('sandbox_mode', $sandbox)
+    //         ->update([
+    //             'id_expiry' => time() + 3600,
+    //             'id_token' => $idToken,
+    //             'refresh_expiry' => time() + 864000,
+    //             'refresh_token' => $responseData->refresh_token,
+    //         ]);
 
-        if ($updatedRows > 0) {
-            // DB::commit();
-        }
-        // dd($idToken);
-        return $idToken;
-    }
+    //     if ($updatedRows > 0) {
+    //         // DB::commit();
+    //     }
+    //     // dd($idToken);
+    //     return $idToken;
+    // }
 
     /**
      * Create payment for package purchase
@@ -231,7 +259,21 @@ class BkashPaymentController extends Controller
                 'merchant_invoice_number' => $merchantInvoiceNumber,
             ];
 
-            // dd($paymentData);
+            // Create initial package history
+            $packageHistory = PackageHistory::create([
+                'package_id' => $request->package_id,
+                'user_id' => $request->user_id,
+                'amount' => $request->amount,
+                'transaction_id' => null,
+                'payment_method' => 'bkash',
+                'payment_method_identity' => '',
+                'pg_transaction_id' => '',
+                'bank_transaction_id' => '',
+                'payment_processes' => 'bkash_tokenized',
+                'approval_code' => $merchantInvoiceNumber,
+            ]);
+
+            $paymentData['package_history_id'] = $packageHistory->id;
 
             // Store in cache for 15 minutes
             cache()->put('bkash_payment_' . $merchantInvoiceNumber, $paymentData, now()->addMinutes(15));
@@ -273,7 +315,8 @@ class BkashPaymentController extends Controller
                     'paymentID' => $responseData->paymentID,
                     'merchantInvoiceNumber' => $merchantInvoiceNumber,
                     'amount' => $request->amount,
-                    'callbackURL' => url('/api/bkash/callback')
+                    'callbackURL' => url('/api/bkash/callback'),
+                    'package_history_id' => $packageHistory->id,
                 ]
             ], 200);
 
@@ -368,7 +411,6 @@ class BkashPaymentController extends Controller
                 array_key_exists("transactionStatus", $res_array) && 
                 $res_array['transactionStatus'] == 'Completed') {
 
-                // Get payment data from cache
                 $merchantInvoiceNumber = $res_array['merchantInvoiceNumber'];
                 $paymentData = cache()->get('bkash_payment_' . $merchantInvoiceNumber);
 
@@ -379,21 +421,42 @@ class BkashPaymentController extends Controller
                     ], 400);
                 }
 
-                // Create package history
-                $packageHistory = PackageHistory::create([
-                    'user_id' => $paymentData['user_id'],
-                    'package_id' => $paymentData['package_id'],
-                    'amount' => $res_array['amount'],
-                    'transaction_id' => $res_array['trxID'],
-                    'payment_method' => 'bkash',
-                    'payment_method_identity' => $res_array['customerMsisdn'] ?? '',
-                    'pg_transaction_id' => $res_array['paymentID'] ?? '',
-                    'bank_transaction_id' => $res_array['trxID'] ?? '',
-                    'payment_processes' => 'bkash_tokenized',
-                    'approval_code' => $res_array['merchantInvoiceNumber'] ?? '',
-                ]);
+                $packageHistory = null;
+                if (!empty($paymentData['package_history_id'])) {
+                    $packageHistory = PackageHistory::find($paymentData['package_history_id']);
+                }
+                if (!$packageHistory) {
+                    $packageHistory = PackageHistory::where('user_id', $paymentData['user_id'])
+                        ->where('package_id', $paymentData['package_id'])
+                        ->where('approval_code', $merchantInvoiceNumber)
+                        ->first();
+                }
 
-                // Clear cache
+                if ($packageHistory) {
+                    $packageHistory->update([
+                        'amount' => $res_array['amount'],
+                        'transaction_id' => $res_array['trxID'],
+                        'payment_method_identity' => $res_array['customerMsisdn'] ?? '',
+                        'pg_transaction_id' => $res_array['paymentID'] ?? '',
+                        'bank_transaction_id' => $res_array['trxID'] ?? '',
+                        'payment_processes' => 'bkash_tokenized',
+                        'approval_code' => $merchantInvoiceNumber,
+                    ]);
+                } else {
+                    $packageHistory = PackageHistory::create([
+                        'user_id' => $paymentData['user_id'],
+                        'package_id' => $paymentData['package_id'],
+                        'amount' => $res_array['amount'],
+                        'transaction_id' => $res_array['trxID'],
+                        'payment_method' => 'bkash',
+                        'payment_method_identity' => $res_array['customerMsisdn'] ?? '',
+                        'pg_transaction_id' => $res_array['paymentID'] ?? '',
+                        'bank_transaction_id' => $res_array['trxID'] ?? '',
+                        'payment_processes' => 'bkash_tokenized',
+                        'approval_code' => $merchantInvoiceNumber,
+                    ]);
+                }
+
                 cache()->forget('bkash_payment_' . $merchantInvoiceNumber);
 
                 // Get package details
@@ -521,4 +584,3 @@ class BkashPaymentController extends Controller
         }
     }
 }
-
