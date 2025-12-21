@@ -127,7 +127,7 @@ class UserAuthController extends Controller
                 return $this->errorMessage('Invalid phone or OTP!!', $request->otp);
             }
 
-            DB::table('forgot_password_otps')->where('phone', $request->phone)->delete();
+            // DB::table('forgot_password_otps')->where('phone', $request->phone)->delete();
 
             $user = User::where('phone', $request->phone)->first();
             $user->email_verified_at = now();
@@ -165,6 +165,8 @@ class UserAuthController extends Controller
         }
 
         $user = User::where('phone', $request->phone)->first();
+        // delete existing otp
+        DB::table('forgot_password_otps')->where('phone', $request->phone)->delete();
 
         if (!$user) {
             return $this->successMessage('Invalid accoutn!');
