@@ -282,7 +282,7 @@ Route::middleware('auth:sanctum')->get('/get-present-live-exam', function (Reque
     $allowedWrittenIds = [];
 
     if ($userPackageIds->isNotEmpty()) {
-        $packages = Package::whereIn('id', $userPackageIds)->select('id', 'permission')->get();
+        $packages = \App\Models\Package::whereIn('id', $userPackageIds)->select('id', 'permission')->get();
         foreach ($packages as $pkg) {
             $perm = is_array($pkg->permission) ? $pkg->permission : [];
             $collectTargetIds($perm, 'Preliminary', $allowedExamIds);
@@ -300,6 +300,7 @@ Route::middleware('auth:sanctum')->get('/get-present-live-exam', function (Reque
             ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
             ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
             ->whereIn('id', $allowedExamIds)
+            ->whereNotNull('package_id')
             ->with([
                 'questions.questionOptions',
                 'questions.subject',
@@ -321,6 +322,7 @@ Route::middleware('auth:sanctum')->get('/get-present-live-exam', function (Reque
             ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
             ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
             ->whereIn('id', $allowedWrittenIds)
+            ->whereNotNull('package_id')
             ->with([
                 'writtenQuestion',
                 'userAnswer' => function ($q) {
