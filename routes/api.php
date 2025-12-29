@@ -300,7 +300,7 @@ Route::middleware('auth:sanctum')->get('/get-present-live-exam', function (Reque
             ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
             ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
             ->whereIn('id', $allowedExamIds)
-            ->whereNotNull('package_id')
+            // ->whereNotNull('package_id')
             ->with([
                 'questions.questionOptions',
                 'questions.subject',
@@ -322,7 +322,7 @@ Route::middleware('auth:sanctum')->get('/get-present-live-exam', function (Reque
             ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
             ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
             ->whereIn('id', $allowedWrittenIds)
-            ->whereNotNull('package_id')
+            // ->whereNotNull('package_id')
             ->with([
                 'writtenQuestion',
                 'userAnswer' => function ($q) {
