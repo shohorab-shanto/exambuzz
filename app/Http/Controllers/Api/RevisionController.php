@@ -26,11 +26,76 @@ class RevisionController extends Controller
         // sensible default if $this->perPage is not set
         $perPage = $this->perPage ?? 10;
 
+        // --- Start Access Validation Logic ---
+        $allowedSubjectIds = [];
+        $user = auth()->user();
+
+        if ($user) {
+            // 1. Get User Package IDs
+            $userPackageIds = $user->packageHistory()->pluck('package_id')->unique();
+
+            if ($userPackageIds->isNotEmpty()) {
+                // 2. Get Allowed Exam IDs from Packages
+                $collectTargetIds = function ($arr, $target, &$out) use (&$collectTargetIds) {
+                    if (!is_array($arr)) return;
+
+                    foreach ($arr as $key => $val) {
+                        if ($key === $target && is_array($val)) {
+                            foreach ($val as $idKey => $flag) {
+                                if (is_numeric($idKey)) {
+                                    $out[] = (int) $idKey;
+                                }
+                                if (is_array($flag)) {
+                                    foreach ($flag as $innerId => $innerFlag) {
+                                        if (is_numeric($innerId)) {
+                                            $out[] = (int) $innerId;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (is_array($val)) {
+                            $collectTargetIds($val, $target, $out);
+                        }
+                    }
+                };
+
+                $allowedExamIds = [];
+                $packages = \App\Models\Package::whereIn('id', $userPackageIds)->select('permission')->get();
+
+                foreach ($packages as $pkg) {
+                    $perm = [];
+                    if (is_array($pkg->permission)) {
+                        $perm = $pkg->permission;
+                    } elseif (is_string($pkg->permission)) {
+                        $decoded = json_decode($pkg->permission, true);
+                        $perm = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+                    }
+
+                    $collectTargetIds($perm, 'Preliminary', $allowedExamIds);
+                    $collectTargetIds($perm, 'Written', $allowedExamIds);
+                }
+
+                $allowedExamIds = array_unique($allowedExamIds);
+
+                // 3. Get Allowed Subject IDs from Allowed Exams
+                if (!empty($allowedExamIds)) {
+                    $allowedSubjectIds = ExamQuestion::whereIn('exam_id', $allowedExamIds)
+                        ->distinct()
+                        ->pluck('subject_id')
+                        ->toArray();
+                }
+            }
+        }
+        // --- End Access Validation Logic ---
+
         // paginate subjects from DB (this is the important part)
         $subjects = Subject::withCount([
             'exams as questions_count',
             'topicAndSources as topic_count',
-        ])->paginate($perPage);
+        ])
+            ->whereIn('id', $allowedSubjectIds)
+            ->paginate($perPage);
 
         // collect current page subject ids
         $subjectIds = $subjects->getCollection()->pluck('id')->all();

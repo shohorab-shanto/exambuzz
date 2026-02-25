@@ -39,13 +39,13 @@
                                                 <i class="far fa-edit"></i>
                                             </a>
 
-                                            {{-- <form action="{{ route('page.delete',$page) }}" method="post">
+                                            <form action="{{ route('subject.delete',$item) }}" method="post" onsubmit="return confirm('Are you sure?')">
                                                 @csrf
                                                 @method('delete')
                                                 <button type="submit" class="btn btn-danger">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            </form> --}}
+                                            </form>
                                         </td>
                                     </tr>
                                 @endforeach
