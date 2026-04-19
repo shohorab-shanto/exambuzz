@@ -217,8 +217,11 @@ class TeacherPanelController extends Controller {
                 $written_answer             = WrittenAnswer::find($question->written_answer_id);
                 $written_answer->is_checked = $request->is_checked;
 
-                $written_answer->obtained_mark = $request->obtained_mark;
-                $written_answer->result_status = $request->obtained_mark >= $written_answer->written->pass_marks ? 1 : 0;
+                // Recalculate total obtained mark from all individual question marks to ensure consistency
+                $total_obtained_mark = $written_answer->writtenAnswerQuestion()->sum('marks');
+
+                $written_answer->obtained_mark = $total_obtained_mark;
+                $written_answer->result_status = $total_obtained_mark >= $written_answer->written->pass_marks ? 1 : 0;
                 $written_answer->save();
 
                 if (!$is_checked_before && $written_answer->is_checked == 1) {

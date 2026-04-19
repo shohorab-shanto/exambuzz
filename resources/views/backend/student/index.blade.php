@@ -21,9 +21,9 @@
             <div class="white_card card_height_100 mb_30">
                 <div class="white_card_body">
                     <div class="mt-2 mb-2">
-                        <form action="{{ route('students') }}">
+                        <form action="{{ route('students') }}" id="searchForm">
                             <div class="row">
-                                <div class="col-md-5">
+                                <div class="col-md-3">
                                     <select name="package_id" class=" form-control " data-placeholder="Select package">
                                         <option value="">Select package</option>
                                         <option value="no" {{ request()->package_id == 'no' ? 'selected' : '' }}>No
@@ -36,14 +36,18 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-5">
-                                    <input type="text" name="registration_id" class="form-control"
-                                        placeholder="Registration Id">
+                                <div class="col-md-2">
+                                    <input type="text" name="user_id" class="form-control"
+                                        placeholder="User ID" value="{{ request()->user_id }}">
                                 </div>
-                                <div class="col-md-1">
+                                <div class="col-md-3">
+                                    <input type="text" name="registration_id" class="form-control"
+                                        placeholder="Registration Id" value="{{ request()->registration_id }}">
+                                </div>
+                                <div class="col-md-2">
                                     <button class="btn btn-primary" type="submit">Search</button>
                                 </div>
-                                <div class="col-md-1">
+                                <div class="col-md-2">
                                     <a href="{{ route('students') }}" class="btn btn-primary">Reset</a>
                                 </div>
                             </div>
@@ -54,6 +58,7 @@
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
+                                    <th scope="col">User ID</th>
                                     <th scope="col">Name</th>
                                     <th scope="col">Phone</th>
                                     <th scope="col">Registration Id</th>
@@ -69,6 +74,7 @@
                                 @foreach ($student as $item)
                                     <tr>
                                         <th scope="row">{{ $loop->iteration }}</th>
+                                        <td>{{ $item->id }}</td>
                                         <td>{{ $item->name }}</td>
                                         <td>{{ $item->phone }}</td>
                                         <td>{{ $item->registration_id }}</td>
