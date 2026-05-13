@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('exams', function (Blueprint $table) {
-            $table->unsignedBigInteger('package_id')->nullable()->after('topic_id')->comment('Package this exam belongs to');
-            $table->index('package_id');
+            if (!Schema::hasColumn('exams', 'package_id')) {
+                $table->unsignedBigInteger('package_id')->nullable()->after('topic_id');
+                $table->index('package_id');
+            }
         });
     }
 
@@ -23,8 +25,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('exams', function (Blueprint $table) {
-            $table->dropIndex(['package_id']);
-            $table->dropColumn('package_id');
+            if (Schema::hasColumn('exams', 'package_id')) {
+                $table->dropIndex(['package_id']);
+                $table->dropColumn('package_id');
+            }
         });
     }
 };

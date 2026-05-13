@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('written_answers', function (Blueprint $table) {
-            $table->unsignedBigInteger('teacher_id')->nullable()->comment('Teacher who evaluated this answer');
-            $table->index('teacher_id');
+            if (!Schema::hasColumn('written_answers', 'teacher_id')) {
+                $table->unsignedBigInteger('teacher_id')->nullable();
+                $table->index('teacher_id');
+            }
         });
     }
 
@@ -23,8 +25,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('written_answers', function (Blueprint $table) {
-            $table->dropIndex(['teacher_id']);
-            $table->dropColumn('teacher_id');
+            if (Schema::hasColumn('written_answers', 'teacher_id')) {
+                $table->dropIndex(['teacher_id']);
+                $table->dropColumn('teacher_id');
+            }
         });
     }
 };

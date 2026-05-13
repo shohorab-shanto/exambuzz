@@ -32,8 +32,12 @@ class MaterialFolder extends Model
     {
         return $this->belongsTo(MaterialFolder::class, 'parent_id');
     }
+    // public function children()
+    // {
+    //     return $this->hasMany(MaterialFolder::class, 'parent_id');
+    // }
     public function children()
     {
-        return $this->hasMany(MaterialFolder::class, 'parent_id');
+        return $this->hasMany(MaterialFolder::class, 'parent_id')->with('children');
     }
 }

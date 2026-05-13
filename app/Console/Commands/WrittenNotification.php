@@ -81,13 +81,13 @@ class WrittenNotification extends Command {
 
                         }
 
-                        FCMService::send(
-                            $user->fcm_token,
-                            [
-                                'title' => "লাইভ পরীক্ষা",
-                                'body'  => $catt . " লিখিত পরীক্ষার খাতা মূল্যায়ন করা হয়েছে, ফলাফল দেখুন।",
-                            ]
-                        );
+                        // FCMService::send(
+                        //     $user->fcm_token,
+                        //     [
+                        //         'title' => "লাইভ পরীক্ষা",
+                        //         'body'  => $catt . " লিখিত পরীক্ষার খাতা মূল্যায়ন করা হয়েছে, ফলাফল দেখুন।",
+                        //     ]
+                        // );
 
                         Notification::create([
                             'name'       => 'লাইভ পরীক্ষা',
@@ -157,13 +157,13 @@ class WrittenNotification extends Command {
 
                         }
 
-                        FCMService::send(
-                            $user->fcm_token,
-                            [
-                                'title' => "লাইভ পরীক্ষা",
-                                'body'  => $catt . " প্রিলিমিনারি লাইভ পরীক্ষা শেষ হয়েছে, ফলাফল দেখুন।",
-                            ]
-                        );
+                        // FCMService::send(
+                        //     $user->fcm_token,
+                        //     [
+                        //         'title' => "লাইভ পরীক্ষা",
+                        //         'body'  => $catt . " প্রিলিমিনারি লাইভ পরীক্ষা শেষ হয়েছে, ফলাফল দেখুন।",
+                        //     ]
+                        // );
 
                         Notification::create([
                             'name'       => 'লাইভ পরীক্ষা',

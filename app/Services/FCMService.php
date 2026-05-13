@@ -2,109 +2,84 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use Google\Client;
 use Illuminate\Support\Facades\Log;
-use Exception;
+use Illuminate\Support\Facades\Http;
 
-class FCMService {
-    /**
-     * Send push notification via Firebase Cloud Messaging
-     * 
-     * @param string $token FCM device token
-     * @param array $notification Notification data ['title' => '', 'body' => '']
-     * @param array $data Additional data payload (optional)
-     * @return bool Success status
-     */
-    public static function send($token, $notification, $data = []) {
-        try {
-            // Validate inputs
-            if (empty($token)) {
-                Log::warning('FCMService: Empty FCM token provided');
-                return false;
-            }
+class FCMService
+{
+    protected static function getAccessToken()
+    {
+        $jsonPath = config('fcm.credentials');
 
-            if (empty($notification['title']) || empty($notification['body'])) {
-                Log::warning('FCMService: Invalid notification data', ['notification' => $notification]);
-                return false;
-            }
-
-            // Prepare payload
-            $payload = [
-                'to' => $token,
-                'notification' => $notification,
-            ];
-
-            // Add data payload if provided
-            if (!empty($data)) {
-                $payload['data'] = $data;
-            }
-
-            // Send request to FCM
-            $response = Http::acceptJson()
-                ->withToken(config('fcm.token'))
-                ->timeout(10)
-                ->post('https://fcm.googleapis.com/fcm/send', $payload);
-
-            // Check response
-            if ($response->successful()) {
-                $result = $response->json();
-                
-                if (isset($result['success']) && $result['success'] > 0) {
-                    Log::info('FCMService: Notification sent successfully', [
-                        'token' => substr($token, 0, 20) . '...',
-                        'title' => $notification['title']
-                    ]);
-                    return true;
-                } else {
-                    Log::warning('FCMService: FCM returned failure', [
-                        'response' => $result,
-                        'token' => substr($token, 0, 20) . '...'
-                    ]);
-                    return false;
-                }
-            } else {
-                Log::error('FCMService: HTTP request failed', [
-                    'status' => $response->status(),
-                    'body' => $response->body()
-                ]);
-                return false;
-            }
-
-        } catch (Exception $e) {
-            Log::error('FCMService: Exception occurred', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return false;
+        if (!file_exists(base_path($jsonPath))) {
+            Log::error('FCM: Credential JSON not found', ['path' => $jsonPath]);
+            return null;
         }
+
+        $client = new Client();
+        $client->setAuthConfig(base_path($jsonPath));
+        $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+
+        $token = $client->fetchAccessTokenWithAssertion();
+
+        return $token['access_token'] ?? null;
     }
 
-    /**
-     * Send notification to multiple tokens
-     * 
-     * @param array $tokens Array of FCM device tokens
-     * @param array $notification Notification data
-     * @param array $data Additional data payload (optional)
-     * @return array ['success' => count, 'failed' => count]
-     */
-    public static function sendToMultiple($tokens, $notification, $data = []) {
-        $success = 0;
-        $failed = 0;
+    public static function send($deviceToken, $arg2, $arg3 = null, $arg4 = [])
+    {
+        if (!config('fcm.enabled')) {
+            return true;
+        }
 
-        foreach ($tokens as $token) {
-            if (self::send($token, $notification, $data)) {
-                $success++;
-            } else {
-                $failed++;
+        $title = is_array($arg2) ? (string)($arg2['title'] ?? '') : (string)$arg2;
+        $body = is_array($arg2) ? (string)($arg2['body'] ?? '') : (string)$arg3;
+        $data = is_array($arg2) ? (is_array($arg3) ? $arg3 : []) : (is_array($arg4) ? $arg4 : []);
+
+        $accessToken = self::getAccessToken();
+        if (!$accessToken) {
+            Log::error('FCM: Unable to fetch access token');
+            return false;
+        }
+
+        $projectId = config('fcm.project_id');
+
+        $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
+
+        $payload = [
+            'message' => [
+                'token' => $deviceToken,
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body,
+                ],
+            ],
+        ];
+
+        if (!empty($data)) {
+            $map = [];
+            foreach ($data as $k => $v) {
+                if (is_string($k) || is_int($k)) {
+                    $map[(string)$k] = is_scalar($v) ? (string)$v : json_encode($v);
+                }
+            }
+            if (!empty($map)) {
+                $payload['message']['data'] = $map;
             }
         }
 
-        Log::info('FCMService: Batch notification completed', [
-            'total' => count($tokens),
-            'success' => $success,
-            'failed' => $failed
+        $response = Http::withToken($accessToken)
+            ->post($url, $payload);
+
+        if ($response->successful()) {
+            return true;
+        }
+
+        Log::error('FCM v1 Error', [
+            'status' => $response->status(),
+            'body' => $response->body()
         ]);
 
-        return ['success' => $success, 'failed' => $failed];
+        return false;
     }
 }

@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('notifications', function (Blueprint $table) {
-            $table->timestamp('read_at')->nullable()->after('status');
-        });
+        if (!Schema::hasColumn('notifications', 'read_at')) {
+            Schema::table('notifications', function (Blueprint $table) {
+                $table->timestamp('read_at')->nullable()->after('status');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('notifications', function (Blueprint $table) {
-            $table->dropColumn('read_at');
-        });
+        if (Schema::hasColumn('notifications', 'read_at')) {
+            Schema::table('notifications', function (Blueprint $table) {
+                $table->dropColumn('read_at');
+            });
+        }
     }
 };

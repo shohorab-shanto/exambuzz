@@ -193,9 +193,9 @@
                     <a href="{{ route('exam.written', ['ref' => 'Others', 'type' => 'Written', 'child' => 'Petrobangla']) }}"
                        class="text-info">Petrobangla Written Exam</a></li>
 
-                <li>
+                <!-- <li>
                     <a href="{{ route('exam.written', ['ref' => 'Others', 'type' => 'Written', 'child' => 'si']) }}"
-                       class="text-info">SI Written Exam</a></li>
+                       class="text-info">SI Written Exam</a></li> -->
 
 
 
@@ -342,7 +342,7 @@
             </a>
         </li>
 
-        <li class>
+        {{-- <li class>
             <a class="has-arrow" href="#" aria-expanded="false">
                 <div class="icon_menu">
                     <img src="{{ asset('backend/img/menu-icon/2.svg') }}" alt>
@@ -353,7 +353,7 @@
                 <li><a href="{{ route('revision_subject.index') }}">Subject</a></li>
                 <li><a href="{{ route('revision_topic.source.index') }}">Topic & Source</a></li>
             </ul>
-        </li>
+        </li> --}}
 
         <li class>
             <a class="has-arrow" href="#" aria-expanded="false">

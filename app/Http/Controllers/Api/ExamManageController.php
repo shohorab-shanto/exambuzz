@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Exam;
 use App\Models\Favorite;
 use App\Models\Helper;
+use App\Models\Package;
 use App\Models\PreliminaryAnswer;
 use App\Models\Subject;
 use App\Models\Syllabus;
@@ -22,69 +23,213 @@ class ExamManageController extends Controller
 {
     public function checkLiveExam(Request $request)
     {
-        $data = [];
+        try {
 
-        $data['category'] = $category = $request->category;
-        $data['subcategory'] = $sub = $request->subcategory;
-        $data['childcategory'] = $child = $request->childcategory;
-        $is_live = false;
+            $category      = $request->category;
+            $subcategory   = $request->subcategory; // Preliminary | Written
+            $childcategory = $request->childcategory;
+            $isFreeCategory = $category === 'Free';
 
-        $exams = [];
+            $now = Carbon::now('Asia/Dhaka');
 
-        if ($sub === 'Preliminary') {
-            $exams = Exam::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-                ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-                ->where('category', $category)
-                ->where('subcategory', $sub);
+            $data = [
+                'category'            => $category,
+                'subcategory'         => $subcategory,
+                'childcategory'       => $childcategory,
+                'exams'               => [],
+                'is_live_exam'        => false,
+                'total_live_exams'    => 0,
+                'upcoming_exam_date'  => null,
+            ];
 
-            if ($child) {
-                $exams = $exams->where('childcategory', $child);
+            // Auth safety
+            $user = Auth::user();
+            if (!$user) {
+                return $this->successMessage('', $data);
             }
 
-            $exams = $exams->with([
-                'questions.questionOptions',
-                'questions.subject',
-                'questions.topic',
-                'userAnswer' => function ($q) {
-                    return $q->where('user_id', Auth::id());
-                },
-            ])->get();
+            // User packages
+            $userPackageIds = $user->packageHistory()
+                ->pluck('package_id')
+                ->unique();
 
-        } elseif ($sub === 'Written') {
-            $exams = Written::where('status', 1)->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-                ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-                ->where('category', $category)
-                ->where('subcategory', $sub);
-
-            if ($child) {
-                $exams = $exams->where('childcategory', $child);
+            // Paid exams require package permissions; free exams are open to all logged-in users.
+            if (!$isFreeCategory && $userPackageIds->isEmpty()) {
+                return $this->successMessage('', $data);
             }
 
-            $exams = $exams->with([
-                'writtenQuestion',
-                'userAnswer' => function ($q) {
-                    return $q->where('user_id', Auth::id());
-                },
-            ])->get();
+           // Permission collector
+            $collectTargetIds = function ($arr, $target, &$out) use (&$collectTargetIds) {
+                if (!is_array($arr)) return;
 
-        }
+                foreach ($arr as $key => $val) {
 
-        $data['exams'] = $exams;
+                    if ($key === $target && is_array($val)) {
+                        foreach ($val as $idKey => $flag) {
 
-        if ($exams && count($exams) > 0) {
-            // Attach subjects and sources to each exam
+                            if (is_numeric($idKey)) {
+                                $out[] = (int) $idKey;
+                            }
+
+                            if (is_array($flag)) {
+                                foreach ($flag as $innerId => $innerFlag) {
+                                    if (is_numeric($innerId)) {
+                                        $out[] = (int) $innerId;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (is_array($val)) {
+                        $collectTargetIds($val, $target, $out);
+                    }
+                }
+            };
+
+            $allowedExamIds    = [];
+            $allowedWrittenIds = [];
+
+            // Load & decode permissions
+            $packages = Package::whereIn('id', $userPackageIds)
+                ->select('permission')
+                ->get();
+
+            foreach ($packages as $pkg) {
+
+                $perm = [];
+
+                if (is_array($pkg->permission)) {
+                    $perm = $pkg->permission;
+                } elseif (is_string($pkg->permission)) {
+                    $decoded = json_decode($pkg->permission, true);
+                    $perm = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+                }
+
+                $collectTargetIds($perm, 'Preliminary', $allowedExamIds);
+                $collectTargetIds($perm, 'Written', $allowedWrittenIds);
+            }
+
+            $allowedExamIds    = collect($allowedExamIds)->unique()->values();
+            $allowedWrittenIds = collect($allowedWrittenIds)->unique()->values();
+
+            $exams        = collect([]);
+            $upcomingExam = null;
+
+            // Preliminary Exam
+            if ($subcategory === 'Preliminary' && ($isFreeCategory || $allowedExamIds->isNotEmpty())) {
+
+                $exams = Exam::where('status', 1)
+                    ->where('published_at', '<=', $now)
+                    ->where('expired_at', '>=', $now)
+                    ->where('category', $category)
+                    ->where('subcategory', $subcategory)
+                    ->when($childcategory, fn ($q) =>
+                        $q->where('childcategory', $childcategory)
+                    )
+                    ->when(!$isFreeCategory, fn ($q) =>
+                        $q->whereIn('id', $allowedExamIds)
+                    )
+                    ->with([
+                        'questions.questionOptions',
+                        'questions.subject',
+                        'questions.topic',
+                        'userAnswer' => fn ($q) =>
+                            $q->where('user_id', $user->id),
+                    ])
+                    ->get();
+
+                $upcomingExam = Exam::where('status', 1)
+                    ->where('published_at', '>', $now)
+                    ->where('category', $category)
+                    ->where('subcategory', $subcategory)
+                    ->when($childcategory, fn ($q) =>
+                        $q->where('childcategory', $childcategory)
+                    )
+                    ->when(!$isFreeCategory, fn ($q) =>
+                        $q->whereIn('id', $allowedExamIds)
+                    )
+                    ->orderBy('published_at')
+                    ->first();
+            }
+
+            // Written Exam
+            if ($subcategory === 'Written' && ($isFreeCategory || $allowedWrittenIds->isNotEmpty())) {
+
+                $exams = Written::where('status', 1)
+                    ->where('published_at', '<=', $now)
+                    ->where('expired_at', '>=', $now)
+                    ->where('category', $category)
+                    ->where('subcategory', $subcategory)
+                    ->when($childcategory, fn ($q) =>
+                        $q->where('childcategory', $childcategory)
+                    )
+                    ->when(!$isFreeCategory, fn ($q) =>
+                        $q->whereIn('id', $allowedWrittenIds)
+                    )
+                    ->with([
+                        'writtenQuestion',
+                        'userAnswer' => fn ($q) =>
+                            $q->where('user_id', $user->id),
+                    ])
+                    ->get();
+
+                $upcomingExam = Written::where('status', 1)
+                    ->where('published_at', '>', $now)
+                    ->where('category', $category)
+                    ->where('subcategory', $subcategory)
+                    ->when($childcategory, fn ($q) =>
+                        $q->where('childcategory', $childcategory)
+                    )
+                    ->when(!$isFreeCategory, fn ($q) =>
+                        $q->whereIn('id', $allowedWrittenIds)
+                    )
+                    ->orderBy('published_at')
+                    ->first();
+            }
+
+            // Attach subjects & sources
             foreach ($exams as $exam) {
-                $exam['subjects'] = Subject::whereIn('id', explode(',', $exam->subject_id))->get();
-                $exam['sources'] = TopicSource::whereIn('id', explode(',', $exam->topic_id))->get();
+
+                if (!empty($exam->subject_id)) {
+                    $exam['subjects'] = Subject::whereIn(
+                        'id',
+                        explode(',', $exam->subject_id)
+                    )->get();
+                } else {
+                    $exam['subjects'] = [];
+                }
+
+                if (!empty($exam->topic_id)) {
+                    $exam['sources'] = TopicSource::whereIn(
+                        'id',
+                        explode(',', $exam->topic_id)
+                    )->get();
+                } else {
+                    $exam['sources'] = [];
+                }
             }
 
-            $is_live = true;
+            $data['exams']               = $exams;
+            $data['is_live_exam']        = $exams->isNotEmpty();
+            $data['total_live_exams']    = $exams->count();
+            $data['upcoming_exam_date']  = $upcomingExam?->published_at;
+
+            return $this->successMessage('', $data);
+
+        } catch (\Throwable $e) {
+
+            \Log::error('checkLiveExam error', [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'status'  => false,
+                'message' => 'Something went wrong',
+            ], 500);
         }
-
-        $data['is_live_exam'] = $is_live;
-        $data['total_live_exams'] = count($exams);
-
-        return $this->successMessage('', $data);
     }
 
     public function routine(Request $request)
@@ -225,7 +370,8 @@ class ExamManageController extends Controller
             }
 
             // Fetch exams with additional data and pagination
-            $exams = $examQuery->orderByDesc('id')
+            $exams = $examQuery->orderByDesc('published_at')
+                ->orderByDesc('id')
                 ->with([
                     'userAnswer' => function ($q) {
                         return $q->where('user_id', Auth::id());
@@ -287,7 +433,8 @@ class ExamManageController extends Controller
                 }
             }
 
-            $exam = $exam->orderByDesc('id')
+            $exam = $exam->orderByDesc('published_at')
+                ->orderByDesc('id')
                 ->with([
                     'writtenQuestion',
                     'userAnswer' => function ($q) {
@@ -334,7 +481,8 @@ class ExamManageController extends Controller
                     }
                 }
 
-                $exam = $exam->orderByDesc('id')
+                $exam = $exam->orderByDesc('published_at')
+                    ->orderByDesc('id')
                     ->with([
                         'userAnswer' => function ($q) {
                             return $q->where('user_id', Auth::id());

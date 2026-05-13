@@ -10,13 +10,15 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('revision_topic_sources', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedInteger('revision_subjects_id');
-            $table->string('topic');
-            $table->string('source');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('revision_topic_sources')) {
+            Schema::create('revision_topic_sources', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedInteger('revision_subjects_id');
+                $table->string('topic');
+                $table->string('source');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

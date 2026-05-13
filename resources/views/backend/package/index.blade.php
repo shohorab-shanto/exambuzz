@@ -32,6 +32,9 @@
                         {{ $item->status == 1 ? 'Active' : 'Inactive' }} <br> Package type: {{ $item->package_type }}
                         <br>Total Purchased: {{ $item->package_history_count }} Students, Total sell amount:
                         {{ $item->packageHistory->sum('amount') }} BDT
+                        @if($item->url)
+                            <br><strong>URL:</strong> <a href="{{ $item->url }}" target="_blank" class="text-primary">{{ $item->url }}</a>
+                        @endif
                     </div>
                     <hr>
                     @if ($item->details)
@@ -56,6 +59,18 @@
                                                         {{ \App\Models\MaterialFolder::find($e_key)->name ?? '' }} : Permitted
                                                     @endforeach
 
+                                                @elseif($c_key == 'Revision' && $s_key == 'SUBJECT')
+                                                    @foreach ($child as $e_key => $exam)
+                                                        <div>
+                                                            <i class="fas fa-check-circle me-2"></i>{{ $c_key }}
+                                                            <i class="fas fa-arrow-right"></i> {{ \App\Models\Subject::find($ch_key)->name ?? $ch_key }}
+                                                            @if($e_key == 'TOPIC' && is_array($exam))
+                                                                @foreach($exam as $topic_id => $topic_val)
+                                                                    <i class="fas fa-arrow-right"></i> {{ \App\Models\TopicSource::find($topic_id)->topic ?? $topic_id }}
+                                                                @endforeach
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
                                                 @else
                                                     @foreach ($child as $e_key => $exam)
                                                         <div>
@@ -63,7 +78,10 @@
                                                             <i class="fas fa-arrow-right"></i> {{ $s_key }}
                                                             <i class="fas fa-arrow-right"></i> {{ $ch_key }}
                                                             <i class="fas fa-arrow-right"></i>
-                                                            {{ $ch_key == 'Preliminary' ? \App\Models\Exam::find($e_key)->published_at->format('d-m-Y') : \App\Models\Written::find($e_key)->published_at->format('d-m-Y') }}{{ ': ' . $exam == true ? 'Permitted' : '' }}
+                                                            @php
+                                                                $examRecord = $ch_key == 'Preliminary' ? \App\Models\Exam::find($e_key) : \App\Models\Written::find($e_key);
+                                                            @endphp
+                                                            {{ $examRecord ? $examRecord->published_at->format('d-m-Y') : 'N/A' }}{{ ': ' . $exam == true ? 'Permitted' : '' }}
                                                         </div>
                                                     @endforeach
                                                 @endif
@@ -74,9 +92,17 @@
                                                     <i class="fas fa-arrow-right"></i>
 
                                                     @if ($s_key == 'Preliminary')
-                                                        {{ \App\Models\Exam::find($ch_key)->published_at->format('d-m-Y') }}
+                                                        @php
+                                                            $examRecord = \App\Models\Exam::find($ch_key);
+                                                        @endphp
+                                                        {{ $examRecord ? $examRecord->published_at->format('d-m-Y') : 'N/A' }}
                                                     @elseif($s_key == 'Written')
-                                                        {{ \App\Models\Written::find($ch_key)->published_at->format('d-m-Y') }}
+                                                        @php
+                                                            $writtenRecord = \App\Models\Written::find($ch_key);
+                                                        @endphp
+                                                        {{ $writtenRecord ? $writtenRecord->published_at->format('d-m-Y') : 'N/A' }}
+                                                    @elseif($c_key == 'Revision' && $s_key == 'SUBJECT')
+                                                        {{ \App\Models\Subject::find($ch_key)->name ?? $ch_key }}
                                                     @else
                                                         @if($s_key == 'BCS' || $s_key == 'Bank' || $s_key == 'Recent' || $s_key == 'Record_Class')
                                                             {{ \App\Models\MaterialFolder::find($ch_key)->name ?? '' }}

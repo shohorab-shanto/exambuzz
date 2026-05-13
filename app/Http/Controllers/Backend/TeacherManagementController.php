@@ -295,4 +295,14 @@ class TeacherManagementController extends Controller {
         return back()->withToastSucces('Request marker as ' . $request->type);
     }
 
+    public function delete($id)
+    {
+        $teacher = User::findOrFail($id);
+        if ($teacher->image && File::exists(public_path($teacher->image))) {
+            File::delete(public_path($teacher->image));
+        }
+        $teacher->delete();
+        return back()->withToastSuccess('Teacher deleted successfully');
+    }
+
 }

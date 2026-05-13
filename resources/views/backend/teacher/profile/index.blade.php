@@ -58,6 +58,14 @@
                                             <a href="{{ route('teacher.show', $item->id) }}" class="btn btn-success me-2">
                                                 <i class="far fa-eye"></i>
                                             </a>
+
+                                            <form action="{{ route('teacher.delete', $item->id) }}" method="post" onsubmit="return confirm('Are you sure?')">
+                                                @csrf
+                                                @method('delete')
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 @endforeach

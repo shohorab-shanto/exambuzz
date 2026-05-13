@@ -12,14 +12,30 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('fcm_token')->nullable()->after('remember_token');
-            $table->string('type')->default('user')->after('fcm_token'); // user, teacher, admin
-            $table->tinyInteger('status')->default(1)->after('type'); // 0 = inactive, 1 = active
-            $table->string('registration_id')->unique()->nullable()->after('status');
-            $table->unsignedInteger('register_number')->nullable()->after('registration_id');
-            $table->string('otp')->nullable()->after('register_number');
-            $table->decimal('amount', 10, 2)->nullable()->after('otp');
-            $table->text('permission')->nullable()->after('amount'); // JSON field for permissions
+            if (!Schema::hasColumn('users', 'fcm_token')) {
+                $table->string('fcm_token')->nullable()->after('remember_token');
+            }
+            if (!Schema::hasColumn('users', 'type')) {
+                $table->string('type')->default('user')->after('fcm_token');
+            }
+            if (!Schema::hasColumn('users', 'status')) {
+                $table->tinyInteger('status')->default(1)->after('type');
+            }
+            if (!Schema::hasColumn('users', 'registration_id')) {
+                $table->string('registration_id')->unique()->nullable()->after('status');
+            }
+            if (!Schema::hasColumn('users', 'register_number')) {
+                $table->unsignedInteger('register_number')->nullable()->after('registration_id');
+            }
+            if (!Schema::hasColumn('users', 'otp')) {
+                $table->string('otp')->nullable()->after('register_number');
+            }
+            if (!Schema::hasColumn('users', 'amount')) {
+                $table->decimal('amount', 10, 2)->nullable()->after('otp');
+            }
+            if (!Schema::hasColumn('users', 'permission')) {
+                $table->text('permission')->nullable()->after('amount');
+            }
         });
     }
 
@@ -29,7 +45,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn([
+            foreach ([
                 'fcm_token',
                 'type',
                 'status',
@@ -37,8 +53,12 @@ return new class extends Migration
                 'register_number',
                 'otp',
                 'amount',
-                'permission'
-            ]);
+                'permission',
+            ] as $col) {
+                if (Schema::hasColumn('users', $col)) {
+                    $table->dropColumn($col);
+                }
+            }
         });
     }
 };

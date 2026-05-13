@@ -94,20 +94,33 @@ class DashboardController extends Controller
         $data = [];
         $student = User::where('type', 'user');
 
+        // Apply user_id filter first if present
+        if ($request->user_id) {
+            $student = $student->where('id', $request->user_id);
+        }
+
+        // Apply registration_id filter if present
+        if ($request->registration_id) {
+            $student = $student->where('registration_id', $request->registration_id);
+        }
+
+        // Apply package filter only if no specific user/registration search
         if ($request->package_id && $request->package_id != 'no') {
             $student = $student->whereHas('packageHistory', function ($q) use ($request) {
                 $q->where('package_id', $request->package_id);
             });
         } elseif ($request->package_id && $request->package_id == 'no') {
             $student = $student->withCount('packageHistory')->having('package_history_count', '=', 0);
-        } else {
+        } elseif (!$request->user_id && !$request->registration_id) {
+            // Only apply withCount when not searching by specific IDs
             $student = $student->withCount([
                 'packageHistory',
             ]);
-        }
-
-        if ($request->registration_id) {
-            $student = $student->where('registration_id', $request->registration_id);
+        } else {
+            // When searching by user_id or registration_id, still need withCount
+            $student = $student->withCount([
+                'packageHistory',
+            ]);
         }
 
         $student = $student->paginate()->withQueryString();

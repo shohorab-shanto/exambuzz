@@ -190,6 +190,7 @@ Route::middleware('auth:admin')->group(function () {
             Route::post('/add-admin-reply', 'addAdminReply')->name('addAdminReply');
             Route::post('/edit-conversation-message', 'editConversationMessage')->name('editConversationMessage');
             Route::post('/delete-conversation-message', 'deleteConversationMessage')->name('deleteConversationMessage');
+            Route::delete('/delete/{id}', 'delete')->name('delete');
 
             //wallet
             Route::get('/withdrawal-request', 'withdrawalRequest')->name('withdrawalRequest');

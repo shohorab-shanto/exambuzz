@@ -84,7 +84,7 @@ return [
     |
      */
 
-    'otp_verification_enabled' => env('OTP_VERIFICATION_ENABLED', false),
+    'otp_verification_enabled' => env('OTP_VERIFICATION_ENABLED', true),
 
     /*
     |--------------------------------------------------------------------------

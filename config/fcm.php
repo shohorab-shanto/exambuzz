@@ -2,6 +2,11 @@
 
 // config/fcm.php
 
+// return [
+//     'token' => "AAAAanr0KaY:APA91bEtYG8axKudxtbzGEaFXzZ7_CCYfLGKrzc9c4w4z9T71uz4r9h5WV74EBdhUR1gXd5I4VyP0YAV9IjBiLL6hI6fMik0ceWTShlUrZUrKHFmRosdEQHc-FlTYLSz68avGIQxtAo- ",
+// ];
 return [
-    'token' => env('FCM_SERVER_KEY', ''),
+    'enabled' => env('FIREBASE_ENABLED', false),
+    'project_id' => env('FIREBASE_PROJECT_ID'),
+    'credentials' => env('FIREBASE_CREDENTIALS'),
 ];

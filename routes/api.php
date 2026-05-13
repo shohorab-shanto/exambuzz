@@ -20,6 +20,7 @@ use App\Models\Material;
 use App\Models\Notification;
 use App\Models\Page;
 use App\Models\Subject;
+use App\Models\Package;
 use App\Models\TopicSource;
 use App\Models\User;
 use App\Models\Written;
@@ -142,6 +143,42 @@ Route::middleware('auth:sanctum')->post('/v2/get-material', function (Request $r
     // Get ALL folders of this type (not just root folders)
     $allFolders = $baseQuery->with('materials')->latest()->get();
 
+    // Collect all parent IDs that are referenced but not in the result set
+    // $parentIds = $allFolders->pluck('parent_id')->filter()->unique();
+    // $existingIds = $allFolders->pluck('id');
+    // $missingParentIds = $parentIds->diff($existingIds);
+
+    // // Load missing parent folders to maintain hierarchy integrity
+    // if ($missingParentIds->isNotEmpty()) {
+    //     $missingParents = \App\Models\MaterialFolder::whereIn('id', $missingParentIds)
+    //         ->where('type', $request->category)
+    //         ->get();
+    //     $allFolders = $allFolders->merge($missingParents);
+    // }
+
+    // Recursively load all missing parent folders to maintain complete hierarchy
+    $maxIterations = 20; // Prevent infinite loops
+    $iteration = 0;
+    
+    do {
+        $parentIds = $allFolders->pluck('parent_id')->filter()->unique();
+        $existingIds = $allFolders->pluck('id');
+        $missingParentIds = $parentIds->diff($existingIds);
+        
+        if ($missingParentIds->isEmpty()) {
+            break;
+        }
+        
+        $missingParents = \App\Models\MaterialFolder::whereIn('id', $missingParentIds)
+            ->where('type', $request->category)
+            ->with('materials')
+            ->get();
+            
+        $allFolders = $allFolders->merge($missingParents);
+        $iteration++;
+        
+    } while ($iteration < $maxIterations);
+
     // Load and process materials for ALL folders
     foreach ($allFolders as $folder) {
         if ($folder->materials && $folder->materials->count() > 0) {
@@ -215,10 +252,60 @@ Route::middleware('auth:sanctum')->get('/get-present-live-exam', function (Reque
 
     $data = [];
 
-    // Live Preliminary exams with full details
+    $userPackageIds = Auth::user()->packageHistory()->pluck('package_id')->unique();
+
+    $collectTargetIds = function ($arr, $target, &$out) use (&$collectTargetIds) {
+        foreach ((array)$arr as $key => $val) {
+            if ($key === $target) {
+                if (is_array($val)) {
+                    foreach ($val as $idKey => $flag) {
+                        if (is_numeric($idKey)) {
+                            $out[] = (int)$idKey;
+                        }
+                        if (is_array($flag)) {
+                            foreach ($flag as $innerId => $innerFlag) {
+                                if (is_numeric($innerId)) {
+                                    $out[] = (int)$innerId;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (is_array($val)) {
+                $collectTargetIds($val, $target, $out);
+            }
+        }
+    };
+
+    $allowedExamIds = [];
+    $allowedWrittenIds = [];
+
+    if ($userPackageIds->isNotEmpty()) {
+        $packages = \App\Models\Package::whereIn('id', $userPackageIds)->select('id', 'permission')->get();
+        foreach ($packages as $pkg) {
+            $perm = is_array($pkg->permission) ? $pkg->permission : [];
+            $collectTargetIds($perm, 'Preliminary', $allowedExamIds);
+            $collectTargetIds($perm, 'Written', $allowedWrittenIds);
+        }
+    }
+
+    $allowedExamIds = collect($allowedExamIds)->unique()->values();
+    $allowedWrittenIds = collect($allowedWrittenIds)->unique()->values();
+    // dd($allowedWrittenIds);
+
+    $now = Carbon::now('Asia/Dhaka')->toDateTimeString();
+
     $exam = Exam::where('status', 1)
-        ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-        ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+        ->where('published_at', '<=', $now)
+        ->where('expired_at', '>=', $now)
+        ->where(function ($q) use ($allowedExamIds) {
+            $q->where('category', 'Free')
+                ->when($allowedExamIds->isNotEmpty(), fn ($q) =>
+                    $q->orWhereIn('id', $allowedExamIds)
+                );
+        })
+            // ->whereNotNull('package_id')
         ->with([
             'questions.questionOptions',
             'questions.subject',
@@ -226,25 +313,29 @@ Route::middleware('auth:sanctum')->get('/get-present-live-exam', function (Reque
             'userAnswer' => function ($q) {
                 return $q->where('user_id', Auth::id());
             },
-        ])
-        ->get();
+        ])->get();
 
     foreach ($exam as $item) {
         $item['subjects'] = Subject::whereIn('id', explode(',', $item->subject_id))->get();
         $item['sources'] = TopicSource::whereIn('id', explode(',', $item->topic_id))->get();
     }
 
-    // Live Written exams with full details
     $written = Written::where('status', 1)
-        ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-        ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
+        ->where('published_at', '<=', $now)
+        ->where('expired_at', '>=', $now)
+        ->where(function ($q) use ($allowedWrittenIds) {
+            $q->where('category', 'Free')
+                ->when($allowedWrittenIds->isNotEmpty(), fn ($q) =>
+                    $q->orWhereIn('id', $allowedWrittenIds)
+                );
+        })
+            // ->whereNotNull('package_id')
         ->with([
             'writtenQuestion',
             'userAnswer' => function ($q) {
                 return $q->where('user_id', Auth::id());
             },
-        ])
-        ->get();
+        ])->get();
 
     foreach ($written as $item) {
         $item['subjects'] = Subject::whereIn('id', explode(',', $item->subject_id))->get();
@@ -323,6 +414,7 @@ Route::middleware('auth:sanctum')->controller(AnswerController::class)->prefix('
     Route::post('/submit-review', 'submitReview'); // Student submits rating + comment
     Route::post('/add-conversation', 'addConversationMessage'); // Add message to conversation (student/teacher/admin)
     Route::post('/get-conversation', 'getReviewConversation'); // Get full conversation thread
+    Route::post('/get-conversation-by-answer', 'getConversationByAnswerId'); // Get conversation by written_answer_id
     Route::post('/reply-review', 'replyToReview'); // Legacy - redirects to add-conversation
 });
 

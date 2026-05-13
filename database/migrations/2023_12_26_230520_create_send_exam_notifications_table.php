@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('send_exam_notifications', function (Blueprint $table) {
-            $table->id();
-            $table->string('type')->nullable();
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->unsignedBigInteger('exam_id')->nullable();
-            $table->unsignedBigInteger('written_id')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('send_exam_notifications')) {
+            Schema::create('send_exam_notifications', function (Blueprint $table) {
+                $table->id();
+                $table->string('type')->nullable();
+                $table->unsignedBigInteger('user_id')->nullable();
+                $table->unsignedBigInteger('exam_id')->nullable();
+                $table->unsignedBigInteger('written_id')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

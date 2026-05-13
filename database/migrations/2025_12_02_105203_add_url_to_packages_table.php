@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('revision_subjects')) {
-            Schema::create('revision_subjects', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->timestamps();
-            });
-        }
+        Schema::table('packages', function (Blueprint $table) {
+            $table->string('url')->nullable()->after('banner_image')->comment('External URL for package details or enrollment');
+        });
     }
 
     /**
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('revision_subjects');
+        Schema::table('packages', function (Blueprint $table) {
+            $table->dropColumn('url');
+        });
     }
 };

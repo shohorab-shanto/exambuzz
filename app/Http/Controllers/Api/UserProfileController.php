@@ -21,10 +21,23 @@ class UserProfileController extends Controller {
                 'preliminaryAnswer as preliminary_total_passed' => function ($query) {
                     $query->where('result_status', 1);
                 },
+                'teacherReviews',
             ])
+            ->withAvg('teacherReviews', 'rating')
             ->first();
 
         if ($user) {
+            // Add rating information for teachers
+            if ($user->type === 'teacher') {
+                $user->average_rating = $user->teacher_reviews_avg_rating 
+                    ? number_format($user->teacher_reviews_avg_rating, 1) 
+                    : '0.0';
+                $user->total_reviews = $user->teacher_reviews_count ?? 0;
+                $user->rating_stars = $user->teacher_reviews_avg_rating 
+                    ? round($user->teacher_reviews_avg_rating, 1) 
+                    : 0;
+            }
+            
             return $this->successMessage('', $user);
         } else {
             return $this->errorMessage();

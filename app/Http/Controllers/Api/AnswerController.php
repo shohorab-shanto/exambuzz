@@ -12,6 +12,7 @@ use App\Models\TopicSource;
 use App\Models\WrittenAnswer;
 use App\Models\WrittenAnswerQuestion;
 use App\Models\WrittenAnswerQuestionScript;
+use App\Models\WrittenAnswerReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,10 @@ class AnswerController extends Controller
 
         try {
 
-            if (PreliminaryAnswer::where('user_id', Auth::id())->where('exam_id', $request->exam_id)->exists()) {
+            $exam_details = Exam::where('id', $request->exam_id)->first();
+            $isLiveExam = $exam_details && $exam_details->expired_at >= now('Asia/Dhaka')->toDateTimeString();
+
+            if ($isLiveExam && PreliminaryAnswer::where('user_id', Auth::id())->where('exam_id', $request->exam_id)->exists()) {
                 return $this->errorMessage('This answer has been taken before');
             }
 
@@ -99,8 +103,6 @@ class AnswerController extends Controller
                 }
 
             }
-
-            $exam_details = Exam::where('id', $answer->exam_id)->first();
 
             $obtained_mark = $positive_count * $exam_details->per_question_positive_mark - $negative_count * $exam_details->per_question_negative_mark;
 
@@ -811,6 +813,42 @@ class AnswerController extends Controller
         }
 
         return $this->successMessage('Conversation retrieved successfully', $review);
+    }
+
+    /**
+     * Get review and all conversations by written_answer_id
+     */
+    public function getConversationByAnswerId(Request $request)
+    {
+        $request->validate([
+            'written_answer_id' => 'required|exists:written_answers,id',
+        ]);
+
+        $userId = auth()->id();
+
+        // Check if the written answer belongs to the authenticated user
+        $writtenAnswer = WrittenAnswer::with(['written', 'user', 'teacher'])
+            ->where('id', $request->written_answer_id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$writtenAnswer) {
+            return $this->errorMessage('Written answer not found or you do not have permission to access it.');
+        }
+
+        // Get review with conversations if exists
+        $review = WrittenAnswerReview::with([
+            'conversations.user',
+            'user',
+            'teacher'
+        ])->where('written_answer_id', $request->written_answer_id)->first();
+
+        // Return data with or without review
+        $data = [
+            'review' => $review,
+        ];
+
+        return $this->successMessage('Data retrieved successfully', $data);
     }
 
     /**

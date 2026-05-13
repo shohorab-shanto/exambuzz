@@ -589,6 +589,41 @@ class ExamController extends Controller
     public function createOrUpdateWrittenQuestion(Request $request)
     {
         // dd($request->all());
+
+        $rules = [];
+        $messages = [];
+
+        if ($request->has('question_id')) {
+            foreach ($request->question_id as $id) {
+                $rules['question_name_' . $id] = 'required|string';
+                $rules['question_mark_' . $id] = 'required|numeric';
+
+                $messages['question_name_' . $id . '.required'] = 'Question name is required for existing question.';
+                $messages['question_mark_' . $id . '.required'] = 'Question mark is required for existing question.';
+                $messages['question_mark_' . $id . '.numeric'] = 'Question mark must be a number.';
+            }
+        }
+
+        if ($request->has('serial_number')) {
+            $new_question_names = $request->input('question_name', []);
+            $new_question_marks = $request->input('question_mark', []);
+
+            foreach ($request->serial_number as $key => $serial) {
+                $rules['question_name.' . $key] = 'required|string';
+                $rules['question_mark.' . $key] = 'required|numeric';
+
+                $messages['question_name.' . $key . '.required'] = 'Question name is required for new question.';
+                $messages['question_mark.' . $key . '.required'] = 'Question mark is required for new question.';
+                $messages['question_mark.' . $key . '.numeric'] = 'Question mark must be a number.';
+            }
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return back()->withToastError($validator->errors()->first())->withInput();
+        }
+
         DB::beginTransaction();
 
         try {
@@ -609,6 +644,11 @@ class ExamController extends Controller
             if (isset($request->serial_number) && count($request->serial_number) > 0) {
 
                 foreach ($request->serial_number as $key => $serial_number) {
+                    // Skip if question name is empty to prevent SQL error
+                    if (empty($request->question_name[$key])) {
+                        continue;
+                    }
+
                     WrittenQuestion::create([
                         'written_id' => $request->written_id,
                         'subject_id' => $subject_id,

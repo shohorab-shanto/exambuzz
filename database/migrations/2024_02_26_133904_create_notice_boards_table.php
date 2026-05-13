@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('notice_boards', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->text('description');
-            $table->string('status')->default(1)->comment('0 = InActive , 1 = Active');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('notice_boards')) {
+            Schema::create('notice_boards', function (Blueprint $table) {
+                $table->id();
+                $table->string('title');
+                $table->text('description');
+                $table->string('status')->default(1)->comment('0 = InActive , 1 = Active');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
