@@ -294,42 +294,48 @@ Route::middleware('auth:sanctum')->get('/get-present-live-exam', function (Reque
     $allowedWrittenIds = collect($allowedWrittenIds)->unique()->values();
     // dd($allowedWrittenIds);
 
-    $exam = collect([]);
-    if ($allowedExamIds->isNotEmpty()) {
-        $exam = Exam::where('status', 1)
-            ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-            ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-            ->whereIn('id', $allowedExamIds)
+    $now = Carbon::now('Asia/Dhaka')->toDateTimeString();
+
+    $exam = Exam::where('status', 1)
+        ->where('published_at', '<=', $now)
+        ->where('expired_at', '>=', $now)
+        ->where(function ($q) use ($allowedExamIds) {
+            $q->where('category', 'Free')
+                ->when($allowedExamIds->isNotEmpty(), fn ($q) =>
+                    $q->orWhereIn('id', $allowedExamIds)
+                );
+        })
             // ->whereNotNull('package_id')
-            ->with([
-                'questions.questionOptions',
-                'questions.subject',
-                'questions.topic',
-                'userAnswer' => function ($q) {
-                    return $q->where('user_id', Auth::id());
-                },
-            ])->get();
-    }
+        ->with([
+            'questions.questionOptions',
+            'questions.subject',
+            'questions.topic',
+            'userAnswer' => function ($q) {
+                return $q->where('user_id', Auth::id());
+            },
+        ])->get();
 
     foreach ($exam as $item) {
         $item['subjects'] = Subject::whereIn('id', explode(',', $item->subject_id))->get();
         $item['sources'] = TopicSource::whereIn('id', explode(',', $item->topic_id))->get();
     }
 
-    $written = collect([]);
-    if ($allowedWrittenIds->isNotEmpty()) {
-        $written = Written::where('status', 1)
-            ->where('published_at', '<=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-            ->where('expired_at', '>=', Carbon::now('Asia/Dhaka')->toDateTimeString())
-            ->whereIn('id', $allowedWrittenIds)
+    $written = Written::where('status', 1)
+        ->where('published_at', '<=', $now)
+        ->where('expired_at', '>=', $now)
+        ->where(function ($q) use ($allowedWrittenIds) {
+            $q->where('category', 'Free')
+                ->when($allowedWrittenIds->isNotEmpty(), fn ($q) =>
+                    $q->orWhereIn('id', $allowedWrittenIds)
+                );
+        })
             // ->whereNotNull('package_id')
-            ->with([
-                'writtenQuestion',
-                'userAnswer' => function ($q) {
-                    return $q->where('user_id', Auth::id());
-                },
-            ])->get();
-    }
+        ->with([
+            'writtenQuestion',
+            'userAnswer' => function ($q) {
+                return $q->where('user_id', Auth::id());
+            },
+        ])->get();
 
     foreach ($written as $item) {
         $item['subjects'] = Subject::whereIn('id', explode(',', $item->subject_id))->get();

@@ -28,6 +28,7 @@ class ExamManageController extends Controller
             $category      = $request->category;
             $subcategory   = $request->subcategory; // Preliminary | Written
             $childcategory = $request->childcategory;
+            $isFreeCategory = $category === 'Free';
 
             $now = Carbon::now('Asia/Dhaka');
 
@@ -52,8 +53,8 @@ class ExamManageController extends Controller
                 ->pluck('package_id')
                 ->unique();
 
-            // No package → no exam
-            if ($userPackageIds->isEmpty()) {
+            // Paid exams require package permissions; free exams are open to all logged-in users.
+            if (!$isFreeCategory && $userPackageIds->isEmpty()) {
                 return $this->successMessage('', $data);
             }
 
@@ -116,7 +117,7 @@ class ExamManageController extends Controller
             $upcomingExam = null;
 
             // Preliminary Exam
-            if ($subcategory === 'Preliminary' && $allowedExamIds->isNotEmpty()) {
+            if ($subcategory === 'Preliminary' && ($isFreeCategory || $allowedExamIds->isNotEmpty())) {
 
                 $exams = Exam::where('status', 1)
                     ->where('published_at', '<=', $now)
@@ -126,7 +127,9 @@ class ExamManageController extends Controller
                     ->when($childcategory, fn ($q) =>
                         $q->where('childcategory', $childcategory)
                     )
-                    ->whereIn('id', $allowedExamIds)
+                    ->when(!$isFreeCategory, fn ($q) =>
+                        $q->whereIn('id', $allowedExamIds)
+                    )
                     ->with([
                         'questions.questionOptions',
                         'questions.subject',
@@ -143,13 +146,15 @@ class ExamManageController extends Controller
                     ->when($childcategory, fn ($q) =>
                         $q->where('childcategory', $childcategory)
                     )
-                    ->whereIn('id', $allowedExamIds)
+                    ->when(!$isFreeCategory, fn ($q) =>
+                        $q->whereIn('id', $allowedExamIds)
+                    )
                     ->orderBy('published_at')
                     ->first();
             }
 
             // Written Exam
-            if ($subcategory === 'Written' && $allowedWrittenIds->isNotEmpty()) {
+            if ($subcategory === 'Written' && ($isFreeCategory || $allowedWrittenIds->isNotEmpty())) {
 
                 $exams = Written::where('status', 1)
                     ->where('published_at', '<=', $now)
@@ -159,7 +164,9 @@ class ExamManageController extends Controller
                     ->when($childcategory, fn ($q) =>
                         $q->where('childcategory', $childcategory)
                     )
-                    ->whereIn('id', $allowedWrittenIds)
+                    ->when(!$isFreeCategory, fn ($q) =>
+                        $q->whereIn('id', $allowedWrittenIds)
+                    )
                     ->with([
                         'writtenQuestion',
                         'userAnswer' => fn ($q) =>
@@ -174,7 +181,9 @@ class ExamManageController extends Controller
                     ->when($childcategory, fn ($q) =>
                         $q->where('childcategory', $childcategory)
                     )
-                    ->whereIn('id', $allowedWrittenIds)
+                    ->when(!$isFreeCategory, fn ($q) =>
+                        $q->whereIn('id', $allowedWrittenIds)
+                    )
                     ->orderBy('published_at')
                     ->first();
             }
@@ -361,7 +370,8 @@ class ExamManageController extends Controller
             }
 
             // Fetch exams with additional data and pagination
-            $exams = $examQuery->orderByDesc('id')
+            $exams = $examQuery->orderByDesc('published_at')
+                ->orderByDesc('id')
                 ->with([
                     'userAnswer' => function ($q) {
                         return $q->where('user_id', Auth::id());
@@ -423,7 +433,8 @@ class ExamManageController extends Controller
                 }
             }
 
-            $exam = $exam->orderByDesc('id')
+            $exam = $exam->orderByDesc('published_at')
+                ->orderByDesc('id')
                 ->with([
                     'writtenQuestion',
                     'userAnswer' => function ($q) {
@@ -470,7 +481,8 @@ class ExamManageController extends Controller
                     }
                 }
 
-                $exam = $exam->orderByDesc('id')
+                $exam = $exam->orderByDesc('published_at')
+                    ->orderByDesc('id')
                     ->with([
                         'userAnswer' => function ($q) {
                             return $q->where('user_id', Auth::id());

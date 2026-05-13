@@ -27,7 +27,10 @@ class AnswerController extends Controller
 
         try {
 
-            if (PreliminaryAnswer::where('user_id', Auth::id())->where('exam_id', $request->exam_id)->exists()) {
+            $exam_details = Exam::where('id', $request->exam_id)->first();
+            $isLiveExam = $exam_details && $exam_details->expired_at >= now('Asia/Dhaka')->toDateTimeString();
+
+            if ($isLiveExam && PreliminaryAnswer::where('user_id', Auth::id())->where('exam_id', $request->exam_id)->exists()) {
                 return $this->errorMessage('This answer has been taken before');
             }
 
@@ -100,8 +103,6 @@ class AnswerController extends Controller
                 }
 
             }
-
-            $exam_details = Exam::where('id', $answer->exam_id)->first();
 
             $obtained_mark = $positive_count * $exam_details->per_question_positive_mark - $negative_count * $exam_details->per_question_negative_mark;
 
